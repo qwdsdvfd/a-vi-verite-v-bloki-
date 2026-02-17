@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CodeBlock</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f0f0f0;
+}
+
+.container{
+  display:flex;
+  height:100vh;
+}
+
+.column{
+  flex:1;
+  padding:15px;
+  box-sizing:border-box;
+  border:2px dashed #ccc;
+  overflow-y:auto;
+}
+
+#left{ background:#fff; }
+#right{ background:#fafafa; }
+
+.block{
+  padding:14px;
+  margin-bottom:10px;
+  background:#4CAF50;
+  color:white;
+  border-radius:8px;
+  cursor:grab;
+  user-select:none;
+}
+
+.anchor{ background:#9C27B0; }
+.anchor-H0{ background:#2196F3; }
+
+.stack{
+  margin-top:10px;
+  min-height:20px;
+}
+
+.dragging{
+  opacity:0.4;
+}
+
+.text-block{
+  background:#FF9800;
+}
+
+.text-input{
+  margin-left:8px;
+  padding:4px 6px;
+  border-radius:4px;
+  border:none;
+  outline:none;
+  font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div id="left" class="column">
+    <div class="block" draggable="true">А1</div>
+    <div class="block" draggable="true">Б2</div>
+    <div class="block" draggable="true">В3</div>
+
+    <div class="block anchor" draggable="true">
+        Г4
+        <div class="stack"></div>
+    </div>
+
+    <div class="block text-block" draggable="true">
+        Д5
+        <input class="text-input" type="text" placeholder="тест?" disabled>
+    </div>
+  </div>
+
+  <div id="right" class="column">
+
+      <div class="block anchor anchor-H0">
+          Х0
+          <div class="stack"></div>
+      </div>
+
+  </div>
+
+</div>
+
+<script>
+const left = document.getElementById("left");
+const right = document.getElementById("right");
+
+let dragged = null;
+let fromPalette = false;
+
+document.addEventListener("dragstart", e=>{
+  const block = e.target.closest(".block");
+  if(!block) return;
+
+  if(e.target.tagName === "INPUT"){
+    e.preventDefault();
+    return;
+  }
+
+  dragged = block;
+  fromPalette = left.contains(block);
+  block.classList.add("dragging");
+});
+
+document.addEventListener("dragend", ()=>{
+  if(dragged){
+    dragged.classList.remove("dragging");
+  }
+  dragged = null;
+});
+
+right.addEventListener("dragover", e=>{
+  e.preventDefault();
+});
+
+right.addEventListener("drop", e=>{
+  e.preventDefault();
+  if(!dragged) return;
+
+  let block;
+
+  if(fromPalette){
+    block = dragged.cloneNode(true);
+    block.setAttribute("draggable","true");
+
+    const input = block.querySelector("input");
+    if(input){
+      input.disabled = false;
+      input.addEventListener("mousedown", ev=>{
+        ev.stopPropagation();
+      });
+    }
+
+  } else {
+    block = dragged;
+  }
+
+  block.classList.remove("dragging");
+
+  const container = e.target.closest(".anchor");
+
+  if(container && right.contains(container)){
+      const stack = container.querySelector(".stack");
+      stack.appendChild(block);
+  } else {
+      right.appendChild(block);
+  }
+});
+
+left.addEventListener("dragover", e=>{
+  e.preventDefault();
+});
+
+left.addEventListener("drop", e=>{
+  e.preventDefault();
+
+  if(dragged && !fromPalette){
+    dragged.remove();
+  }
+});
+</script>
+
+</body>
+</html>
