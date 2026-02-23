@@ -5,95 +5,55 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CodeBlock</title>
 
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#f0f0f0;
-}
-
-.container{
-  display:flex;
-  height:100vh;
-}
-
-.column{
-  flex:1;
-  padding:15px;
-  box-sizing:border-box;
-  border:2px dashed #ccc;
-  overflow-y:auto;
-}
-
-#left{ background:#fff; }
-#right{ background:#fafafa; }
-
-.block{
-  padding:14px;
-  margin-bottom:10px;
-  background:#4CAF50;
-  color:white;
-  border-radius:8px;
-  cursor:grab;
-  user-select:none;
-}
-
-.anchor{ background:#9C27B0; }
-.anchor-H0{ background:#2196F3; }
-
-.stack{
-  margin-top:10px;
-  min-height:20px;
-}
-
-.dragging{
-  opacity:0.4;
-}
-
-.text-block{
-  background:#FF9800;
-}
-
-.text-input{
-  margin-left:8px;
-  padding:4px 6px;
-  border-radius:4px;
-  border:none;
-  outline:none;
-  font-size:14px;
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="container">
+<div class="layout">
 
-  <div id="left" class="column">
-    <div class="block" draggable="true">А1</div>
-    <div class="block" draggable="true">Б2</div>
-    <div class="block" draggable="true">В3</div>
+<div id="top">
 
-    <div class="block anchor" draggable="true">
+  <div id="console">
+    <div class="console-title">Консоль</div>
+    <div id="console-out"></div>
+  </div>
+
+</div>
+  <div class="bottom">
+
+    <div id="left" class="column">
+    <div class="block variable" draggable="true">
+  Переменная
+  <input class="var-name" type="text" placeholder="1" disabled>
+  <input class="var-value" type="text" placeholder="2" disabled>
+</div>
+      <div class="block" draggable="true">Б2</div>
+      <div class="block" draggable="true">В3</div>
+
+      <div class="block anchor" draggable="true">
         Г4
         <div class="stack"></div>
-    </div>
-
-    <div class="block text-block" draggable="true">
-        Д5
-        <input class="text-input" type="text" placeholder="тест?" disabled>
-    </div>
-  </div>
-
-  <div id="right" class="column">
-
-      <div class="block anchor anchor-H0">
-          Х0
-          <div class="stack"></div>
       </div>
 
+      <div class="block text-block" draggable="true">
+        Д5
+        <input class="text-input" type="text" placeholder="тест?" disabled>
+      </div>
+    </div>
+
+    <div id="right" class="column">
+      <div class="block anchor anchor-H0">
+        Х0
+        <div class="stack"></div>
+      </div>
+    </div>
+
   </div>
-<script> src = '123.js' </script>
+
 </div>
+
+<script src="script.js"></script>
+
 </body>
 </html>
