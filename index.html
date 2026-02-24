@@ -4,52 +4,69 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CodeBlock</title>
-
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <div class="layout">
 
 <div id="top">
+<div id="console">
+<div class="console-title">Консоль</div>
+<div id="console-out"></div>
+<button id="run-btn">▶</button>
+</div>
+</div>
 
-  <div id="console">
-    <div class="console-title">Консоль</div>
-    <div id="console-out"></div>
-  </div>
+<div class="bottom">
+
+<div id="left" class="column">
+
+<!-- Block V1 - Новый variable block -->
+<div class="block variable" draggable="true">
+Переменная
+<div class="var-name-anchor anchor">
+Блок?
+<div class="stack"></div>
+</div>
+
+<select class="var-mode" disabled>
+<option value="assign">=</option>
+<option value="declare">×</option>
+</select>
+
+<div class="var-value-anchor anchor">
+Блок?
+<div class="stack"></div>
+</div>
 
 </div>
-  <div class="bottom">
 
-    <div id="left" class="column">
-    <div class="block variable" draggable="true">
-  Переменная
-  <input class="var-name" type="text" placeholder="1" disabled>
-  <input class="var-value" type="text" placeholder="2" disabled>
+<div class="block print anchor" draggable="true">print
+<div class="stack"></div></div>
+
+
+<div class="block" draggable="true">В3</div>
+
+<div class="block anchor" draggable="true">
+Г4
+<div class="stack"></div>
 </div>
-      <div class="block" draggable="true">Б2</div>
-      <div class="block" draggable="true">В3</div>
 
-      <div class="block anchor" draggable="true">
-        Г4
-        <div class="stack"></div>
-      </div>
+<div class="block text-block" draggable="true">
+<input class="text-input" type="text" disabled>
+</div>
 
-      <div class="block text-block" draggable="true">
-        Д5
-        <input class="text-input" type="text" placeholder="тест?" disabled>
-      </div>
-    </div>
+</div>
 
-    <div id="right" class="column">
-      <div class="block anchor anchor-H0">
-        Х0
-        <div class="stack"></div>
-      </div>
-    </div>
+<div id="right" class="column">
+<div class="block anchor anchor-H0">
+Х0
+<div class="stack"></div>
+</div>
+</div>
 
-  </div>
+</div>
 
 </div>
 

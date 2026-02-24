@@ -1,1 +1,0 @@
-# a-vi-verite-v-bloki-
