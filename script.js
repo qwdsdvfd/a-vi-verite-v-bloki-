@@ -1,5 +1,3 @@
-
-
 const left = document.getElementById("left");
 const right = document.getElementById("right");
 
@@ -7,9 +5,7 @@ let dragged = null;
 let fromPalette = false;
 
 document.addEventListener("dragstart", e => {
-
     const block = e.target.closest(".block");
-
     if (!block) return;
 
     if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") {
@@ -19,21 +15,15 @@ document.addEventListener("dragstart", e => {
 
     dragged = block;
     fromPalette = left.contains(block);
-
     block.classList.add("dragging");
-
 });
 
 document.addEventListener("dragend", () => {
-    if (dragged) {
-        dragged.classList.remove("dragging");
-    }
+    if (dragged) dragged.classList.remove("dragging");
     dragged = null;
 });
 
-right.addEventListener("dragover", e => {
-    e.preventDefault();
-});
+right.addEventListener("dragover", e => e.preventDefault());
 
 right.addEventListener("drop", e => {
     e.preventDefault();
@@ -84,7 +74,6 @@ right.addEventListener("drop", e => {
     } else {
         right.appendChild(block);
     }
-
 });
 
 left.addEventListener("dragover", e => e.preventDefault());
@@ -108,36 +97,56 @@ const programState = {
     variables: {}
 };
 
-function getValueFromAnchor(anchor) {
-    if (!anchor) return "0"; 
+function getBlockFromAnchor(anchor) {
+    if (!anchor) return null;
     const stack = anchor.querySelector(".stack");
-    if (!stack || stack.children.length === 0) return "0";  
-    const block = stack.children[0];
-    if (!block) return "0";
-    if (block.classList.contains("text-block")) {
-        const input = block.querySelector(".text-input");
-        return input && input.value.trim() !== "" ? input.value.trim() : "0"; 
-    }
-    return "0"; 
+    if (!stack || stack.children.length === 0) return null;
+    return stack.children[0];
 }
 
-document.getElementById("run-btn").addEventListener("click", runH0Program);
+function evaluateBlock(block) {
+    if (block.classList.contains("text-block")) {
+        const input = block.querySelector(".text-input");
+        return input && input.value.trim() !== ""
+            ? input.value.trim()
+            : "0";
+    }
+
+    if (block.classList.contains("math")) {
+        const leftBlock = getBlockFromAnchor(
+            block.querySelector(".math-left-anchor")
+        );
+
+        const rightBlock = getBlockFromAnchor(
+            block.querySelector(".math-right-anchor")
+        );
+
+        const operator = block.querySelector(".math-operator").value;
+
+        const leftValue = leftBlock ? Number(evaluateBlock(leftBlock)) : 0;
+        const rightValue = rightBlock ? Number(evaluateBlock(rightBlock)) : 0;
+
+        switch (operator) {
+            case "+": return leftValue + rightValue;
+            case "-": return leftValue - rightValue;
+            case "*": return leftValue * rightValue;
+            case "/": return rightValue !== 0 ? leftValue / rightValue : 0;
+        }
+    }
+
+    return 0;
+}
+
+document.getElementById("run-btn")
+    .addEventListener("click", runH0Program);
 
 function runH0Program() {
     consoleOutput.innerHTML = "";
     programState.variables = {};
 
-    document.querySelectorAll(".variable").forEach(block => {
-        const mode = block.querySelector(".var-mode").value;
-        const valueAnchor = block.querySelector(".var-value-anchor");
-        if (mode === "declare") {
-            valueAnchor.style.display = "none";
-        } else {
-            valueAnchor.style.display = "block";
-        }
-    });
+    const root = right.querySelector(".anchor-H0");
+    if (!root) return;
 
-    const root = right.querySelector(".print");
     executeStack(root.querySelector(".stack"));
 }
 
@@ -148,30 +157,42 @@ function executeStack(stack) {
 }
 
 function executeBlock(block) {
-    if (block.classList.contains("variable")) {
-        const mode = block.querySelector(".var-mode").value;
-        const name = getValueFromAnchor(block.querySelector(".var-name-anchor"));
-        const value = getValueFromAnchor(block.querySelector(".var-value-anchor"));
+    if (block.classList.contains("print")) {
+        const innerBlock = getBlockFromAnchor(block);
 
-        if (!name) {
-            logToConsole("Ошибка: имя переменной отсутствует");
+        if (!innerBlock) {
+            logToConsole("0");
             return;
         }
 
+        const result = evaluateBlock(innerBlock);
+        logToConsole(result);
+    }
+
+    else if (block.classList.contains("variable")) {
+        const mode = block.querySelector(".var-mode").value;
+
+        const nameBlock = getBlockFromAnchor(
+            block.querySelector(".var-name-anchor")
+        );
+
+        const valueBlock = getBlockFromAnchor(
+            block.querySelector(".var-value-anchor")
+        );
+
+        const name = nameBlock ? evaluateBlock(nameBlock) : null;
+        if (!name) return;
+
         if (mode === "declare") {
             programState.variables[name] = undefined;
-            logToConsole("Переменная объявлена: " + name);
         }
 
         if (mode === "assign") {
+            const value = valueBlock ? evaluateBlock(valueBlock) : 0;
             programState.variables[name] = value;
-            logToConsole("Переменная: " + name + " = " + value);
         }
     }
-    else if (block.classList.contains("text-block")) {
-        const text = block.querySelector(".text-input").value;
-        logToConsole("Текст: " + text);
-    }
+
     else if (block.classList.contains("anchor")) {
         executeStack(block.querySelector(".stack"));
     }

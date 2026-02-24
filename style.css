@@ -219,3 +219,44 @@ body {
   gap: 10px;
   background: linear-gradient(135deg, #81D4FA, #29B6F6);
 }
+
+.print-anchor {
+  background: rgba(255,255,255,0.08);
+  border: 2px dashed rgba(255,255,255,0.3);
+  border-radius: 10px;
+  min-width: 50px;
+  min-height: 28px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.math {
+  background: linear-gradient(135deg, #E91E63, #C2185B);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.math-left-anchor,
+.math-right-anchor {
+  background: rgba(255,255,255,0.08);
+  border: 2px dashed rgba(255,255,255,0.3);
+  border-radius: 10px;
+  min-width: 50px;
+  min-height: 28px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.math-operator {
+  border-radius: 6px;
+  border: none;
+  padding: 4px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  font-weight: bold;
+}
