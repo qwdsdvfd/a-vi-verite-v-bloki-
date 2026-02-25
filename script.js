@@ -43,9 +43,24 @@ right.addEventListener("drop", e => {
             });
         });
 
+        const elseToggle = block.querySelector(".Else-block");
+        if(elseToggle){
+            const elseAnchor =block.querySelector(".If-Else");
+            elseToggle.addEventListener("change",()=>{
+                if(elseToggle.checked){
+                    elseAnchor.style.display= "block";
+
+                }else{
+                    elseAnchor.style.display = "none";
+                    elseAnchor.querySelector(".stack").innerHTML= "";
+                }
+
+            });
+        }
+
         const modeSelect = block.querySelector(".var-mode");
         if (modeSelect) {
-            const valueAnchor = block.querySelector(".var-value-anchor");
+            const valueAnchor  = block.querySelector(".var-value-anchor");
             if (modeSelect.value === "declare") {
                 valueAnchor.style.display = "none";
             } else {
@@ -196,7 +211,35 @@ function executeBlock(block) {
             const value = valueBlock ? evaluateBlock(valueBlock) : 0;
             programState.variables[name] = value;
         }
-    } else if (block.classList.contains("anchor")) {
+    } else if(block.classList.contains("block-if"))
+        {
+        const leftBlock = getBlockFromAnchor(block.querySelector(".if-left-anchor"));
+        const rightBlock = getBlockFromAnchor(block.querySelector(".if-right-anchor"));
+        const moveIf = block.querySelector(".if-operator").value;
+        const leftValue = leftBlock?Number(evaluateBlock(leftBlock)):0;
+        const rightValue = rightBlock?Number(evaluateBlock(rightBlock)):0;
+        let result = false;
+        switch(moveIf){
+            case"==":result = leftValue == rightValue; break;
+            case">":result = leftValue > rightValue; break;
+            case"<":result = leftValue < rightValue; break;
+            case"!=":result = leftValue != rightValue; break;
+            case">=":result = leftValue >= rightValue; break;
+            case"<=":result = leftValue <= rightValue; break;
+        }
+        if (result){
+            executeStack(block.querySelector(".if-body .stack" ));
+            
+        }
+        else {
+            const elseToggle = block.querySelector(".Else-block");
+            if (elseToggle && elseToggle.checked){
+                executeStack(block.querySelector(".If-Else .stack" ));
+            }
+        }
+        }
+    
+     else if (block.classList.contains("anchor")) {
         executeStack(block.querySelector(".stack"));
     }
 }
