@@ -46,13 +46,11 @@ right.addEventListener("drop", e => {
         const modeSelect = block.querySelector(".var-mode");
         if (modeSelect) {
             const valueAnchor = block.querySelector(".var-value-anchor");
-
             if (modeSelect.value === "declare") {
                 valueAnchor.style.display = "none";
             } else {
                 valueAnchor.style.display = "block";
             }
-
             modeSelect.addEventListener("change", () => {
                 if (modeSelect.value === "declare") {
                     valueAnchor.style.display = "none";
@@ -61,7 +59,6 @@ right.addEventListener("drop", e => {
                 }
             });
         }
-
     } else {
         block = dragged;
     }
@@ -105,27 +102,46 @@ function getBlockFromAnchor(anchor) {
 }
 
 function evaluateBlock(block) {
+    if (!block) return 0;
+
     if (block.classList.contains("text-block")) {
         const input = block.querySelector(".text-input");
-        return input && input.value.trim() !== ""
-            ? input.value.trim()
-            : "0";
+        let val = input && input.value.trim() !== "" ? input.value.trim() : "0";
+        if (val.startsWith("@")) {
+            const varName = val.slice(1);
+            if (programState.variables.hasOwnProperty(varName)) {
+                return programState.variables[varName];
+            } else {
+                return 0;
+            }
+        }
+        return val;
+    }
+
+    if (block.classList.contains("variable")) {
+        const nameBlock = getBlockFromAnchor(block.querySelector(".var-name-anchor"));
+        const valueBlock = getBlockFromAnchor(block.querySelector(".var-value-anchor"));
+        const mode = block.querySelector(".var-mode").value;
+        const name = nameBlock ? evaluateBlock(nameBlock) : null;
+        if (!name) return 0;
+        if (mode === "declare") {
+            programState.variables[name] = undefined;
+            return 0;
+        }
+        if (mode === "assign") {
+            const value = valueBlock ? evaluateBlock(valueBlock) : 0;
+            programState.variables[name] = value;
+            return value;
+        }
+        return 0;
     }
 
     if (block.classList.contains("math")) {
-        const leftBlock = getBlockFromAnchor(
-            block.querySelector(".math-left-anchor")
-        );
-
-        const rightBlock = getBlockFromAnchor(
-            block.querySelector(".math-right-anchor")
-        );
-
+        const leftBlock = getBlockFromAnchor(block.querySelector(".math-left-anchor"));
+        const rightBlock = getBlockFromAnchor(block.querySelector(".math-right-anchor"));
         const operator = block.querySelector(".math-operator").value;
-
         const leftValue = leftBlock ? Number(evaluateBlock(leftBlock)) : 0;
         const rightValue = rightBlock ? Number(evaluateBlock(rightBlock)) : 0;
-
         switch (operator) {
             case "+": return leftValue + rightValue;
             case "-": return leftValue - rightValue;
@@ -134,19 +150,21 @@ function evaluateBlock(block) {
         }
     }
 
+    if (block.classList.contains("anchor")) {
+        const inner = getBlockFromAnchor(block);
+        return inner ? evaluateBlock(inner) : 0;
+    }
+
     return 0;
 }
 
-document.getElementById("run-btn")
-    .addEventListener("click", runH0Program);
+document.getElementById("run-btn").addEventListener("click", runH0Program);
 
 function runH0Program() {
     consoleOutput.innerHTML = "";
     programState.variables = {};
-
     const root = right.querySelector(".anchor-H0");
     if (!root) return;
-
     executeStack(root.querySelector(".stack"));
 }
 
@@ -159,41 +177,26 @@ function executeStack(stack) {
 function executeBlock(block) {
     if (block.classList.contains("print")) {
         const innerBlock = getBlockFromAnchor(block);
-
         if (!innerBlock) {
             logToConsole("0");
             return;
         }
-
         const result = evaluateBlock(innerBlock);
         logToConsole(result);
-    }
-
-    else if (block.classList.contains("variable")) {
+    } else if (block.classList.contains("variable")) {
         const mode = block.querySelector(".var-mode").value;
-
-        const nameBlock = getBlockFromAnchor(
-            block.querySelector(".var-name-anchor")
-        );
-
-        const valueBlock = getBlockFromAnchor(
-            block.querySelector(".var-value-anchor")
-        );
-
+        const nameBlock = getBlockFromAnchor(block.querySelector(".var-name-anchor"));
+        const valueBlock = getBlockFromAnchor(block.querySelector(".var-value-anchor"));
         const name = nameBlock ? evaluateBlock(nameBlock) : null;
         if (!name) return;
-
         if (mode === "declare") {
             programState.variables[name] = undefined;
         }
-
         if (mode === "assign") {
             const value = valueBlock ? evaluateBlock(valueBlock) : 0;
             programState.variables[name] = value;
         }
-    }
-
-    else if (block.classList.contains("anchor")) {
+    } else if (block.classList.contains("anchor")) {
         executeStack(block.querySelector(".stack"));
     }
 }
