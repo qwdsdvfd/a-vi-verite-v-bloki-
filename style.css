@@ -75,7 +75,7 @@ body {
   transform: scale(0.95);
 }
 
-.block:not(.anchor):not(.text-block) {
+.block:not(.anchor):not(.text-block):not(.if-block):not(.while-block) {
   background: linear-gradient(135deg, #4CAF50, #43A047);
 }
 
@@ -261,12 +261,96 @@ body {
   font-weight: bold;
 }
 
+
+.if-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #7B1FA2, #512DA8);
+}
+
+.if-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .if-left-anchor,
-.If-Else,
-.if-body,
 .if-right-anchor {
-  background: rgba(255,255,255,0.08);
-  border: 2px dashed rgba(255,255,255,0.3);
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  min-width: 50px;
+  min-height: 28px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.if-left-anchor:hover,
+.if-right-anchor:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(0, 229, 255, 0.7);
+  color: white;
+}
+
+.if-body-anchor {
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  padding: 6px;
+  min-height: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.if-else-control {
+  font-size: 12px;
+  opacity: 0.8;
+  padding-left: 4px;
+}
+
+.if-else-anchor {
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  padding: 6px;
+  min-height: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.while-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #FF5252, #C62828);
+}
+
+.while-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.while-label {
+  font-weight: bold;
+}
+
+.while-left-anchor,
+.while-right-anchor {
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
   border-radius: 10px;
   min-width: 50px;
   min-height: 28px;
@@ -276,3 +360,22 @@ body {
   justify-content: center;
 }
 
+.while-body-anchor {
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  padding: 6px;
+  min-height: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.while-operator {
+  border-radius: 6px;
+  border: none;
+  padding: 4px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  font-weight: bold;
+}

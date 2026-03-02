@@ -43,18 +43,16 @@ right.addEventListener("drop", e => {
             });
         });
 
-        const elseToggle = block.querySelector(".Else-block");
-        if(elseToggle){
-            const elseAnchor =block.querySelector(".If-Else");
-            elseToggle.addEventListener("change",()=>{
-                if(elseToggle.checked){
-                    elseAnchor.style.display= "block";
-
-                }else{
+        const elseToggle = block.querySelector(".if-else-toggle");
+        if (elseToggle) {
+            const elseAnchor = block.querySelector(".if-else-anchor");
+            elseToggle.addEventListener("change", () => {
+                if (elseToggle.checked) {
+                    elseAnchor.style.display = "block";
+                } else {
                     elseAnchor.style.display = "none";
-                    elseAnchor.querySelector(".stack").innerHTML= "";
+                    elseAnchor.querySelector(".stack").innerHTML = "";
                 }
-
             });
         }
 
@@ -211,35 +209,59 @@ function executeBlock(block) {
             const value = valueBlock ? evaluateBlock(valueBlock) : 0;
             programState.variables[name] = value;
         }
-    } else if(block.classList.contains("block-if"))
-        {
+    } else if (block.classList.contains("if-block")) {
         const leftBlock = getBlockFromAnchor(block.querySelector(".if-left-anchor"));
         const rightBlock = getBlockFromAnchor(block.querySelector(".if-right-anchor"));
-        const moveIf = block.querySelector(".if-operator").value;
-        const leftValue = leftBlock?Number(evaluateBlock(leftBlock)):0;
-        const rightValue = rightBlock?Number(evaluateBlock(rightBlock)):0;
+        const operator = block.querySelector(".if-operator").value;
+        const leftValue = leftBlock ? Number(evaluateBlock(leftBlock)) : 0;
+        const rightValue = rightBlock ? Number(evaluateBlock(rightBlock)) : 0;
         let result = false;
-        switch(moveIf){
-            case"==":result = leftValue == rightValue; break;
-            case">":result = leftValue > rightValue; break;
-            case"<":result = leftValue < rightValue; break;
-            case"!=":result = leftValue != rightValue; break;
-            case">=":result = leftValue >= rightValue; break;
-            case"<=":result = leftValue <= rightValue; break;
+
+        switch(operator) {
+            case "==": result = leftValue == rightValue; break;
+            case "!=": result = leftValue != rightValue; break;
+            case ">": result = leftValue > rightValue; break;
+            case "<": result = leftValue < rightValue; break;
+            case ">=": result = leftValue >= rightValue; break;
+            case "<=": result = leftValue <= rightValue; break;
         }
-        if (result){
-            executeStack(block.querySelector(".if-body .stack" ));
-            
-        }
-        else {
-            const elseToggle = block.querySelector(".Else-block");
-            if (elseToggle && elseToggle.checked){
-                executeStack(block.querySelector(".If-Else .stack" ));
+
+        if (result) {
+            executeStack(block.querySelector(".if-body-anchor .stack"));
+        } else {
+            const toggle = block.querySelector(".if-else-toggle");
+            if (toggle && toggle.checked) {
+                executeStack(block.querySelector(".if-else-anchor .stack"));
             }
         }
+    } else if (block.classList.contains("while-block")) {
+
+    while (true) {
+
+        const leftBlock = getBlockFromAnchor(block.querySelector(".while-left-anchor"));
+        const rightBlock = getBlockFromAnchor(block.querySelector(".while-right-anchor"));
+
+        let leftValue = leftBlock ? Number(evaluateBlock(leftBlock)) : 0;
+        let rightValue = rightBlock ? Number(evaluateBlock(rightBlock)) : 0;
+
+        let condition = false;
+        const operator = block.querySelector(".while-operator").value;
+
+        switch(operator) {
+            case "==": condition = leftValue == rightValue; break;
+            case "!=": condition = leftValue != rightValue; break;
+            case ">": condition = leftValue > rightValue; break;
+            case "<": condition = leftValue < rightValue; break;
+            case ">=": condition = leftValue >= rightValue; break;
+            case "<=": condition = leftValue <= rightValue; break;
         }
-    
-     else if (block.classList.contains("anchor")) {
+
+        if (!condition) break;
+
+        executeStack(block.querySelector(".while-body-anchor .stack"));
+    }
+}
+    else if (block.classList.contains("anchor")) {
         executeStack(block.querySelector(".stack"));
     }
 }
