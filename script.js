@@ -104,8 +104,12 @@ function logToConsole(message) {
 }
 
 const programState = {
-    variables: {}
+    variables: {},
+    
+    arrays: {}
+    
 };
+
 
 function getBlockFromAnchor(anchor) {
     if (!anchor) return null;
@@ -120,14 +124,39 @@ function evaluateBlock(block) {
     if (block.classList.contains("text-block")) {
         const input = block.querySelector(".text-input");
         let val = input && input.value.trim() !== "" ? input.value.trim() : "0";
-        if (val.startsWith("@")) {
-            const varName = val.slice(1);
-            if (programState.variables.hasOwnProperty(varName)) {
-                return programState.variables[varName];
+if (val.startsWith("@")) {
+    const varName = val.slice(1);
+    const match = varName.match(/^(\w+)(?:\[(.+)\])?$/);
+    if (match) {
+        const arrName = match[1];
+        let index = match[2];
+        const array = programState.arrays[arrName];
+
+        if (array) {
+            if (index !== undefined) {
+                index = index.trim();
+
+                if (index === "length") {
+                    return array.length;
+                }
+
+                if (index.startsWith("@")) {
+                    const idxVar = index.slice(1);
+                    index = Number(programState.variables[idxVar] ?? 0);
+                } else {
+                    index = Number(index);
+                }
+
+                return array[index] ?? 0;
             } else {
-                return 0;
+                return array;
             }
+        } else {
+            return programState.variables[arrName] ?? 0;
         }
+    }
+}
+
         return val;
     }
 
@@ -209,7 +238,17 @@ function executeBlock(block) {
             const value = valueBlock ? evaluateBlock(valueBlock) : 0;
             programState.variables[name] = value;
         }
-    } else if (block.classList.contains("if-block")) {
+     } else if (block.classList.contains("array-block")) {
+        const nameBlock = getBlockFromAnchor(block.querySelector(".array-name"));
+        const valueStack = block.querySelector(".array-value .stack");
+        const name = nameBlock ? evaluateBlock(nameBlock) : "unnamed";
+        programState.arrays[name] = [];
+        for (let elem of valueStack.children) {
+            const val = evaluateBlock(elem);
+            programState.arrays[name].push(val);
+        }
+
+     } else if (block.classList.contains("if-block")) {
         const leftBlock = getBlockFromAnchor(block.querySelector(".if-left-anchor"));
         const rightBlock = getBlockFromAnchor(block.querySelector(".if-right-anchor"));
         const operator = block.querySelector(".if-operator").value;
