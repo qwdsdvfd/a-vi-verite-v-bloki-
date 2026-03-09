@@ -80,6 +80,7 @@ body {
 .math        { background: linear-gradient(135deg, #E91E63, #a30444); display: flex; align-items: center; gap: 6px; }
 .if-block    { background: linear-gradient(135deg, #7B1FA2, #512DA8); }
 .while-block { background: linear-gradient(135deg, #FF5252, #C62828); }
+.array-set   { background: linear-gradient(135deg, #26c9b3, #1100ff); display: flex; align-items: center; gap: 6px; }
 
 .var-name-anchor,
 .var-value-anchor,
@@ -91,7 +92,10 @@ body {
 .while-left-anchor,
 .while-right-anchor,
 .array-name,
-.array-value {
+.array-value,
+.array-set-name,
+.array-set-index,
+.array-set-value {
   background: rgba(255,255,255,0.08);
   border: 2px dashed rgba(255,255,255,0.30);
   border-radius: 10px;

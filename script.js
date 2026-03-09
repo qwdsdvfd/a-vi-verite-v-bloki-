@@ -238,7 +238,7 @@ function executeBlock(block) {
             const value = valueBlock ? evaluateBlock(valueBlock) : 0;
             programState.variables[name] = value;
         }
-     } else if (block.classList.contains("array-block")) {
+    } else if (block.classList.contains("array-block")) {
         const nameBlock = getBlockFromAnchor(block.querySelector(".array-name"));
         const valueStack = block.querySelector(".array-value .stack");
         const name = nameBlock ? evaluateBlock(nameBlock) : "unnamed";
@@ -247,6 +247,18 @@ function executeBlock(block) {
             const val = evaluateBlock(elem);
             programState.arrays[name].push(val);
         }
+    } else if (block.classList.contains("array-set")) {
+    const nameBlock = getBlockFromAnchor(block.querySelector(".array-set-name"));
+    const indexBlock = getBlockFromAnchor(block.querySelector(".array-set-index"));
+    const valueBlock = getBlockFromAnchor(block.querySelector(".array-set-value"));
+
+    const name = nameBlock ? evaluateBlock(nameBlock) : null;
+    const index = indexBlock ? Number(evaluateBlock(indexBlock)) : 0;
+    const value = valueBlock ? evaluateBlock(valueBlock) : 0;
+
+    if (name && programState.arrays[name]) {
+        programState.arrays[name][index] = value;
+    }
 
      } else if (block.classList.contains("if-block")) {
         const leftBlock = getBlockFromAnchor(block.querySelector(".if-left-anchor"));
@@ -300,6 +312,7 @@ function executeBlock(block) {
         executeStack(block.querySelector(".while-body-anchor .stack"));
     }
 }
+
     else if (block.classList.contains("anchor")) {
         executeStack(block.querySelector(".stack"));
     }
