@@ -231,3 +231,12 @@ body {
 }
 
 #run-btn:hover { transform: scale(1.05); }
+
+.drop-placeholder {
+ height:6px;
+ background: rgb(0, 255, 179);
+ border-radius:4px;
+ margin:4px 0;
+
+}
+

@@ -3,6 +3,46 @@ const right = document.getElementById("right");
 
 let dragged = null;
 let fromPalette = false;
+let placeholder = null;
+let originalParent = null;
+let originalNextSibling = null;
+
+function createPlaceholder() {
+    const el = document.createElement("div");
+    el.className = "drop-placeholder";
+    return el;
+}
+
+function removePlaceholder() {
+    if (placeholder && placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
+    placeholder = null;
+}
+
+function getInsertionPoint(stack, clientY) {
+    const children = [...stack.children].filter(c => !c.classList.contains("drop-placeholder"));
+    for (let i = 0; i < children.length; i++) {
+        const rect = children[i].getBoundingClientRect();
+        if (clientY < rect.top + rect.height / 2) return children[i];
+    }
+    return null;
+}
+
+function findTargetStack(target) {
+    let el = target;
+    while (el && el !== document) {
+        if (dragged && el === dragged) break;
+        if (el.classList && el.classList.contains("stack") && right.contains(el)) {
+            if (!dragged || !dragged.contains(el)) return el;
+        }
+        if (el.classList && el.classList.contains("anchor") && right.contains(el)) {
+            const s = el.querySelector(":scope > .stack");
+            if (s && (!dragged || !dragged.contains(s))) return s;
+        }
+        el = el.parentElement;
+    }
+    const rootAnchor = right.querySelector(".anchor-H0");
+    return rootAnchor ? rootAnchor.querySelector(".stack") : null;
+}
 
 document.addEventListener("dragstart", e => {
     const block = e.target.closest(".block");
@@ -15,15 +55,38 @@ document.addEventListener("dragstart", e => {
 
     dragged = block;
     fromPalette = left.contains(block);
+    originalParent = block.parentNode;
+    originalNextSibling = block.nextSibling;
     block.classList.add("dragging");
 });
 
 document.addEventListener("dragend", () => {
     if (dragged) dragged.classList.remove("dragging");
     dragged = null;
+    removePlaceholder();
 });
 
-right.addEventListener("dragover", e => e.preventDefault());
+right.addEventListener("dragover", e => {
+    e.preventDefault();
+    if (!placeholder) placeholder = createPlaceholder();
+
+    const overDragged = !fromPalette && dragged && (e.target === dragged || dragged.contains(e.target));
+    if (overDragged) {
+        if (originalNextSibling) originalParent.insertBefore(placeholder, originalNextSibling);
+        else originalParent.appendChild(placeholder);
+        return;
+    }
+
+    const targetStack = findTargetStack(e.target);
+    if (!targetStack) { removePlaceholder(); return; }
+    const insertBefore = getInsertionPoint(targetStack, e.clientY);
+    if (insertBefore) targetStack.insertBefore(placeholder, insertBefore);
+    else targetStack.appendChild(placeholder);
+});
+
+right.addEventListener("dragleave", e => {
+    if (!right.contains(e.relatedTarget)) removePlaceholder();
+});
 
 right.addEventListener("drop", e => {
     e.preventDefault();
@@ -78,12 +141,20 @@ right.addEventListener("drop", e => {
 
     block.classList.remove("dragging");
 
-    const container = e.target.closest(".anchor");
-    if (container && right.contains(container)) {
-        container.querySelector(".stack").appendChild(block);
-    } else {
-        right.appendChild(block);
+    if (placeholder && placeholder.parentNode) {
+        placeholder.parentNode.insertBefore(block, placeholder);
+        removePlaceholder();
+        return;
     }
+
+    const targetStack = findTargetStack(e.target);
+    if (targetStack) {
+        const insertBefore = getInsertionPoint(targetStack, e.clientY);
+        if (insertBefore) targetStack.insertBefore(block, insertBefore);
+        else targetStack.appendChild(block);
+    }
+
+    removePlaceholder();
 });
 
 left.addEventListener("dragover", e => e.preventDefault());
