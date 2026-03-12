@@ -1,188 +1,184 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>CodeBlock</title>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeBlock</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <div id="top">
+        <div id="console">
+          <div class="console-title">Консоль</div>
+          <div id="console-out"></div>
+          <button id="run-btn">▶</button>
+        </div>
+      </div>
 
-<div class="layout">
+      <div class="bottom">
+        <div id="left" class="column">
+          <div class="block variable" draggable="true">
+            Переменная
+            <div class="var-name-anchor anchor">
+              <div class="stack"></div>
+            </div>
 
-<div id="top">
-<div id="console">
-<div class="console-title">Консоль</div>
-<div id="console-out"></div>
-<button id="run-btn">▶</button>
-</div>
-</div>
+            <select class="var-mode" disabled>
+              <option value="assign">=</option>
+              <option value="declare">×</option>
+            </select>
 
-<div class="bottom">
+            <div class="var-value-anchor anchor">
+              <div class="stack"></div>
+            </div>
+          </div>
 
-<div id="left" class="column">
-<div class="block variable" draggable="true">
-Переменная
-<div class="var-name-anchor anchor">
-<div class="stack"></div>
-</div>
+          <div class="block array-block" draggable="true">
+            Массив
+            <div class="array-name anchor"><div class="stack"></div></div>
+            =
+            <div class="array-value anchor"><div class="stack"></div></div>
+          </div>
 
-<select class="var-mode" disabled>
-<option value="assign">=</option>
-<option value="declare">×</option>
-</select>
+          <div class="block array-set" draggable="true">
+            Изменение
+            <div class="anchor array-set-name"><div class="stack"></div></div>
+            [
+            <div class="anchor array-set-index"><div class="stack"></div></div>
+            ] =
+            <div class="anchor array-set-value"><div class="stack"></div></div>
+          </div>
 
-<div class="var-value-anchor anchor">
-<div class="stack"></div>
-</div>
-</div>
+          <div class="block print anchor" draggable="true">
+            Вывести
+            <div class="print-anchor anchor">
+              <div class="stack"></div>
+            </div>
+          </div>
 
-<div class="block array-block" draggable="true">
-Массив
-<div class="array-name anchor"><div class="stack"></div></div>
-=
-<div class="array-value anchor"><div class="stack"></div></div>
-</div>
+          <div class="block math" draggable="true">
+            Вычисление
 
-<div class="block array-set" draggable="true">
-set
-<div class="anchor array-set-name"><div class="stack"></div></div>
-[
-<div class="anchor array-set-index"><div class="stack"></div></div>
-] =
-<div class="anchor array-set-value"><div class="stack"></div></div>
-</div>
+            <div class="math-left-anchor anchor">
+              <div class="stack"></div>
+            </div>
 
-<div class="block print anchor" draggable="true">print
-<div class="print-anchor anchor">
-<div class="stack"></div></div>
-</div>
+            <select class="math-operator" disabled>
+              <option value="+">+</option>
+              <option value="-">-</option>
+              <option value="*">*</option>
+              <option value="/">/</option>
+            </select>
 
-<div class="block math" draggable="true">
-Вычисление
+            <div class="math-right-anchor anchor">
+              <div class="stack"></div>
+            </div>
+          </div>
 
-<div class="math-left-anchor anchor">
-<div class="stack"></div>
-</div>
+          <div class="block anchor" draggable="true">
+            Г4
+            <div class="stack"></div>
+          </div>
 
-<select class="math-operator" disabled>
-<option value="+">+</option>
-<option value="-">-</option>
-<option value="*">*</option>
-<option value="/">/</option>
-</select>
+          <div class="block if-block" draggable="true">
+            <div class="if-header">
+              <span class="if-label">Если</span>
 
-<div class="math-right-anchor anchor">
-<div class="stack"></div>
-</div>
-</div>
+              <div class="if-left-anchor anchor">
+                <div class="stack"></div>
+              </div>
 
-<div class="block anchor" draggable="true">
-Г4
-<div class="stack"></div>
-</div>
+              <select class="if-operator" disabled>
+                <option value="==">==</option>
+                <option value="!=">!=</option>
+                <option value=">">></option>
+                <option value="<"><</option>
+                <option value=">=">>=</option>
+                <option value="<="><=</option>
+              </select>
 
-<div class="block if-block" draggable="true">
-<div class="if-header">
-<span class="if-label">if</span>
+              <div class="if-right-anchor anchor">
+                <div class="stack"></div>
+              </div>
+            </div>
 
-<div class="if-left-anchor anchor">
-<div class="stack"></div>
-</div>
+            <div class="if-body-anchor anchor">
+              <div class="stack"></div>
+            </div>
 
-<select class="if-operator" disabled>
-<option value="==">==</option>
-<option value="!=">!=</option>
-<option value=">">></option>
-<option value="<"><</option>
-<option value=">=">>=</option>
-<option value="<="><=</option>
-</select>
+            <div class="if-else-control">
+              <label>
+                <input type="checkbox" class="if-else-toggle" disabled />
+                Иначе
+              </label>
+            </div>
+            <div class="if-else-anchor anchor" style="display: none">
+              <div class="stack"></div>
+            </div>
+          </div>
 
-<div class="if-right-anchor anchor">
-<div class="stack"></div>
-</div>
-</div>
+          <div class="block while-block" draggable="true">
+            <div class="while-header">
+              <span class="while-label">Пока</span>
 
-<div class="if-body-anchor anchor">
-<div class="stack"></div>
-</div>
+              <div class="while-left-anchor anchor">
+                <div class="stack"></div>
+              </div>
 
-<div class="if-else-control">
-<label>
-<input type="checkbox" class="if-else-toggle" disabled>
-else
-</label>
-</div>
-<div class="if-else-anchor anchor" style="display:none;">
-<div class="stack"></div>
-</div>
-</div>
+              <select class="while-operator" disabled>
+                <option value="==">==</option>
+                <option value="!=">!=</option>
+                <option value=">">></option>
+                <option value="<"><</option>
+                <option value=">=">>=</option>
+                <option value="<="><=</option>
+              </select>
 
-<div class="block while-block" draggable="true">
-<div class="while-header">
-<span class="while-label">while</span>
+              <div class="while-right-anchor anchor">
+                <div class="stack"></div>
+              </div>
+            </div>
 
-<div class="while-left-anchor anchor">
-<div class="stack"></div>
-</div>
+            <div class="while-body-anchor anchor">
+              <div class="stack"></div>
+            </div>
+          </div>
 
-<select class="while-operator" disabled>
-<option value="==">==</option>
-<option value="!=">!=</option>
-<option value=">">></option>
-<option value="<"><</option>
-<option value=">=">>=</option>
-<option value="<="><=</option>
-</select>
+          <div class="block func-def" draggable="true">
+            <div class="func-def-header">
+              Функция
+              <div class="func-def-name-anchor anchor">
+                <div class="stack"></div>
+              </div>
+            </div>
+            <div class="func-def-body-anchor anchor">
+              <div class="stack"></div>
+            </div>
+          </div>
 
-<div class="while-right-anchor anchor">
-<div class="stack"></div>
-</div>
-</div>
+          <div class="block func-call" draggable="true">
+            Вызов
+            <div class="func-call-name-anchor anchor">
+              <div class="stack"></div>
+            </div>
+          </div>
 
-<div class="while-body-anchor anchor">
-<div class="stack"></div>
-</div>
-</div>
+          <div class="block text-block" draggable="true">
+            Текст
+            <input class="text-input" type="text" disabled />
+          </div>
+        </div>
 
-<div class="block func-def" draggable="true">
-<div class="func-def-header">
-func
-<div class="func-def-name-anchor anchor">
-<div class="stack"></div>
-</div>
-</div>
-<div class="func-def-body-anchor anchor">
-<div class="stack"></div>
-</div>
-</div>
+        <div id="right" class="column">
+          <div class="block anchor anchor-H0">
+            Исполнение
+            <div class="stack"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<div class="block func-call" draggable="true">
-call
-<div class="func-call-name-anchor anchor">
-<div class="stack"></div>
-</div>
-</div>
-
-<div class="block text-block" draggable="true">
-<input class="text-input" type="text" disabled>
-</div>
-
-</div>
-
-<div id="right" class="column">
-<div class="block anchor anchor-H0">
-Х0
-<div class="stack"></div>
-</div>
-</div>
-
-</div>
-
-</div>
-
-<script src="script.js"></script>
-
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
