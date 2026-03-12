@@ -71,6 +71,14 @@ body {
   box-shadow: 0 8px 18px rgba(0,0,0,0.4);
 }
 
+#left .block[data-block-type="value"]::after {
+  content: "значение";
+}
+
+#left .block[data-block-type="statement"]::after {
+  content: "оператор";
+}
+
 .anchor      { background: linear-gradient(135deg, #ff009d, #7B1FA2); }
 .anchor-H0   { background: linear-gradient(135deg, #2196F3, #1565C0); }
 .text-block  { background: linear-gradient(135deg, #FF9800, #F57C00); display: flex; align-items: center; gap: 8px; }
@@ -113,7 +121,34 @@ body {
   justify-content: center;
   font-size: 12px;
   color: rgba(255,255,255,0.6);
-  transition: 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.reject-drop {
+  background: rgba(255, 60, 60, 0.25) !important;
+  border-color: #ff3c3c !important;
+  animation: reject-shake 0.25s ease;
+  box-shadow: 0 0 0 2px rgba(255,60,60,0.4);
+}
+
+@keyframes reject-shake {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-4px); }
+  75%  { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+#left .block::after {
+  content: attr(data-block-type);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-left: auto;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.2);
 }
 
 .if-block,
@@ -146,6 +181,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .if-else-control {
@@ -242,10 +278,8 @@ body {
 #run-btn:hover { transform: scale(1.05); }
 
 .drop-placeholder {
- height:6px;
- background: rgb(0, 255, 179);
- border-radius:4px;
- margin:4px 0;
-
+  height: 6px;
+  background: rgb(0, 255, 179);
+  border-radius: 4px;
+  margin: 4px 0;
 }
-

@@ -7,6 +7,23 @@ let placeholder = null;
 let originalParent = null;
 let originalNextSibling = null;
 
+function getBlockType(block) {
+  return block ? block.dataset.blockType || "any" : "any";
+}
+
+function stackAccepts(stack) {
+  const anchor = stack.closest("[data-accepts]");
+  return anchor ? anchor.dataset.accepts || "any" : "any";
+}
+
+function isDropAllowed(block, stack) {
+  if (!block || !stack) return false;
+  const blockType = getBlockType(block);
+  const accepts = stackAccepts(stack);
+  if (accepts === "any" || blockType === "any") return true;
+  return accepts === blockType;
+}
+
 function createPlaceholder() {
   const el = document.createElement("div");
   el.className = "drop-placeholder";
@@ -47,6 +64,24 @@ function findTargetStack(target) {
   return rootAnchor ? rootAnchor.querySelector(".stack") : null;
 }
 
+let lastRejectedStack = null;
+
+function showRejectFeedback(stack) {
+  if (lastRejectedStack === stack) return;
+  clearRejectFeedback();
+  lastRejectedStack = stack;
+  const anchor = stack.closest("[data-accepts]");
+  if (anchor) anchor.classList.add("reject-drop");
+}
+
+function clearRejectFeedback() {
+  if (lastRejectedStack) {
+    const anchor = lastRejectedStack.closest("[data-accepts]");
+    if (anchor) anchor.classList.remove("reject-drop");
+    lastRejectedStack = null;
+  }
+}
+
 document.addEventListener("dragstart", (e) => {
   const block = e.target.closest(".block");
   if (!block) return;
@@ -67,17 +102,21 @@ document.addEventListener("dragend", () => {
   if (dragged) dragged.classList.remove("dragging");
   dragged = null;
   removePlaceholder();
+  clearRejectFeedback();
 });
 
 right.addEventListener("dragover", (e) => {
   e.preventDefault();
-  if (!placeholder) placeholder = createPlaceholder();
+
 
   const overDragged =
     !fromPalette &&
     dragged &&
     (e.target === dragged || dragged.contains(e.target));
+
   if (overDragged) {
+    clearRejectFeedback();
+    if (!placeholder) placeholder = createPlaceholder();
     if (originalNextSibling)
       originalParent.insertBefore(placeholder, originalNextSibling);
     else originalParent.appendChild(placeholder);
@@ -87,20 +126,41 @@ right.addEventListener("dragover", (e) => {
   const targetStack = findTargetStack(e.target);
   if (!targetStack) {
     removePlaceholder();
+    clearRejectFeedback();
     return;
   }
+
+  if (!isDropAllowed(dragged, targetStack)) {
+    removePlaceholder();
+    showRejectFeedback(targetStack);
+    e.dataTransfer.dropEffect = "none";
+    return;
+  }
+
+  clearRejectFeedback();
+  if (!placeholder) placeholder = createPlaceholder();
   const insertBefore = getInsertionPoint(targetStack, e.clientY);
   if (insertBefore) targetStack.insertBefore(placeholder, insertBefore);
   else targetStack.appendChild(placeholder);
 });
 
 right.addEventListener("dragleave", (e) => {
-  if (!right.contains(e.relatedTarget)) removePlaceholder();
+  if (!right.contains(e.relatedTarget)) {
+    removePlaceholder();
+    clearRejectFeedback();
+  }
 });
 
 right.addEventListener("drop", (e) => {
   e.preventDefault();
+  clearRejectFeedback();
   if (!dragged) return;
+
+  const targetStack = findTargetStack(e.target);
+  if (targetStack && !isDropAllowed(dragged, targetStack)) {
+    removePlaceholder();
+    return;
+  }
 
   let block;
 
@@ -157,7 +217,7 @@ right.addEventListener("drop", (e) => {
     return;
   }
 
-  const targetStack = findTargetStack(e.target);
+
   if (targetStack) {
     const insertBefore = getInsertionPoint(targetStack, e.clientY);
     if (insertBefore) targetStack.insertBefore(block, insertBefore);
@@ -197,6 +257,22 @@ function getBlockFromAnchor(anchor) {
   return stack.children[0];
 }
 
+function getOwnAnchor(block, className) {
+  const candidates = block.querySelectorAll("." + className);
+  for (let el of candidates) {
+    if (el.closest(".block") === block) return el;
+  }
+  return null;
+}
+
+function getOwnSelect(block, className) {
+  const candidates = block.querySelectorAll("." + className);
+  for (let el of candidates) {
+    if (el.closest(".block") === block) return el;
+  }
+  return null;
+}
+
 function evaluateBlock(block) {
   if (!block) return 0;
 
@@ -214,11 +290,7 @@ function evaluateBlock(block) {
         if (array) {
           if (index !== undefined) {
             index = index.trim();
-
-            if (index === "length") {
-              return array.length;
-            }
-
+            if (index === "length") return array.length;
             if (index.startsWith("@")) {
               const idxVar = index.slice(1);
               index = Number(programState.variables[idxVar] ?? 0);
@@ -328,9 +400,7 @@ function executeBlock(block) {
     );
     const name = nameBlock ? evaluateBlock(nameBlock) : null;
     if (!name) return;
-    if (mode === "declare") {
-      programState.variables[name] = undefined;
-    }
+    if (mode === "declare") programState.variables[name] = undefined;
     if (mode === "assign") {
       const value = valueBlock ? evaluateBlock(valueBlock) : 0;
       programState.variables[name] = value;
@@ -354,14 +424,13 @@ function executeBlock(block) {
     const valueBlock = getBlockFromAnchor(
       block.querySelector(".array-set-value"),
     );
-
+    
     const name = nameBlock ? evaluateBlock(nameBlock) : null;
     const index = indexBlock ? Number(evaluateBlock(indexBlock)) : 0;
     const value = valueBlock ? evaluateBlock(valueBlock) : 0;
-
-    if (name && programState.arrays[name]) {
+    if (name && programState.arrays[name])
       programState.arrays[name][index] = value;
-    }
+
   } else if (block.classList.contains("if-block")) {
     const leftBlock = getBlockFromAnchor(
       block.querySelector(".if-left-anchor"),
@@ -399,30 +468,29 @@ function executeBlock(block) {
       executeStack(block.querySelector(".if-body-anchor .stack"));
     } else {
       const toggle = block.querySelector(".if-else-toggle");
-      if (toggle && toggle.checked) {
+      if (toggle && toggle.checked)
         executeStack(block.querySelector(".if-else-anchor .stack"));
-      }
+
     }
-  }  else if (block.classList.contains("while-block")) {
+  } else if (block.classList.contains("while-block")) {
     let iterations = 0;
     const MAX_ITERATIONS = 1000;
     while (true) {
       if (++iterations > MAX_ITERATIONS) {
-        logToConsole("Превышен лимит итераций");
         break;
       }
       const leftBlock = getBlockFromAnchor(
-        block.querySelector(".while-left-anchor"),
+        getOwnAnchor(block, "while-left-anchor"),
       );
       const rightBlock = getBlockFromAnchor(
-        block.querySelector(".while-right-anchor"),
+        getOwnAnchor(block, "while-right-anchor"),
       );
 
       const leftValue = leftBlock ? Number(evaluateBlock(leftBlock)) : 0;
       const rightValue = rightBlock ? Number(evaluateBlock(rightBlock)) : 0;
 
       let condition = false;
-      const operator = block.querySelector(".while-operator").value;
+      const operator = getOwnSelect(block, "while-operator").value;
 
       switch (operator) {
         case "==":
@@ -446,7 +514,8 @@ function executeBlock(block) {
       }
 
       if (!condition) break;
-      executeStack(block.querySelector(".while-body-anchor .stack"));
+      const bodyAnchor = getOwnAnchor(block, "while-body-anchor");
+      executeStack(bodyAnchor.querySelector(".stack"));
     }
   } else if (block.classList.contains("func-def")) {
     const nameBlock = getBlockFromAnchor(
@@ -463,9 +532,7 @@ function executeBlock(block) {
     const name = nameBlock ? String(evaluateBlock(nameBlock)) : 0;
     if (!name) return;
     const bodyStack = programState.functions[name];
-    if (bodyStack) {
-      executeStack(bodyStack);
-    }
+    if (bodyStack) executeStack(bodyStack);
   } else if (block.classList.contains("anchor")) {
     executeStack(block.querySelector(".stack"));
   }
