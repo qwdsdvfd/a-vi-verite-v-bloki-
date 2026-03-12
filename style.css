@@ -18,6 +18,7 @@ body {
 }
 
 #top {
+  position: relative;
   height: 50%;
   border-radius: 16px;
   background: rgba(255,255,255,0.07);
@@ -248,7 +249,6 @@ body {
   padding: 12px;
   overflow-y: auto;
   font-family: monospace;
-  position: relative;
 }
 
 .console-title {
@@ -282,4 +282,71 @@ body {
   background: rgb(0, 255, 179);
   border-radius: 4px;
   margin: 4px 0;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 196, 49, 0.6) rgba(255, 255, 255, 0.05);
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #78c431, #43A047);
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #a0e050, #66BB6A);
+}
+
+.math-operator,
+.while-operator,
+.if-operator,
+.var-mode {
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 5px 28px 5px 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.math-operator:hover,
+.while-operator:hover,
+.if-operator:hover,
+.var-mode:hover {
+  background-color: rgba(255, 255, 255, 0.22);
+  border-color: rgba(120, 196, 49, 0.7);
+  box-shadow: 0 0 8px rgba(120, 196, 49, 0.35);
+}
+
+.math-operator:focus,
+.while-operator:focus,
+.if-operator:focus,
+.var-mode:focus {
+  border-color: #78c431;
+  box-shadow: 0 0 0 2px rgba(120, 196, 49, 0.3);
+}
+
+.math-operator option,
+.while-operator option,
+.if-operator option,
+.var-mode option {
+  background: #1e1e2f;
+  color: #fff;
+  font-weight: 600;
 }

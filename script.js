@@ -16,12 +16,31 @@ function stackAccepts(stack) {
   return anchor ? anchor.dataset.accepts || "any" : "any";
 }
 
+function getStackLimit(stack) {
+  const anchor = stack.closest("[data-accepts]");
+  if (!anchor) return Infinity;
+  const raw = anchor.dataset.limit;
+  if (raw === undefined || raw === "" || raw === "inf") return Infinity;
+  const n = Number(raw);
+  return isNaN(n) ? Infinity : n;
+}
+
 function isDropAllowed(block, stack) {
   if (!block || !stack) return false;
   const blockType = getBlockType(block);
   const accepts = stackAccepts(stack);
-  if (accepts === "any" || blockType === "any") return true;
-  return accepts === blockType;
+
+  if (accepts !== "any" && blockType !== "any" && accepts !== blockType) return false;
+
+  const limit = getStackLimit(stack);
+  if (isFinite(limit)) {
+    const realChildren = [...stack.children].filter(
+      (c) => !c.classList.contains("drop-placeholder")
+    );
+    if (realChildren.length >= limit) return false;
+  }
+
+  return true;
 }
 
 function createPlaceholder() {

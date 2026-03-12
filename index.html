@@ -12,15 +12,15 @@
         <div id="console">
           <div class="console-title">Консоль</div>
           <div id="console-out"></div>
-          <button id="run-btn">▶</button>
         </div>
+        <button id="run-btn">▶</button>
       </div>
 
       <div class="bottom">
         <div id="left" class="column">
           <div class="block variable" draggable="true" data-block-type="statement">
             Переменная
-            <div class="var-name-anchor anchor" data-accepts="value">
+            <div class="var-name-anchor anchor" data-accepts="value" data-limit="1">
               <div class="stack"></div>
             </div>
 
@@ -29,14 +29,14 @@
               <option value="declare">×</option>
             </select>
 
-            <div class="var-value-anchor anchor" data-accepts="value">
+            <div class="var-value-anchor anchor" data-accepts="value" data-limit="1">
               <div class="stack"></div>
             </div>
           </div>
 
           <div class="block array-block" draggable="true" data-block-type="statement">
             Массив
-            <div class="array-name anchor" data-accepts="value">
+            <div class="array-name anchor" data-accepts="value" data-limit="1">
               <div class="stack"></div>
             </div>
             =
@@ -47,22 +47,22 @@
 
           <div class="block array-set" draggable="true" data-block-type="statement">
             Изменение
-            <div class="anchor array-set-name" data-accepts="value">
+            <div class="anchor array-set-name" data-accepts="value" data-limit="1">
               <div class="stack"></div>
             </div>
             [
-            <div class="anchor array-set-index" data-accepts="value">
+            <div class="anchor array-set-index" data-accepts="value" data-limit="1">
               <div class="stack"></div>
             </div>
             ] =
-            <div class="anchor array-set-value" data-accepts="value">
+            <div class="anchor array-set-value" data-accepts="value" data-limit="1">
               <div class="stack"></div>
             </div>
           </div>
 
           <div class="block print anchor" draggable="true" data-block-type="statement">
             Вывести
-            <div class="print-anchor anchor" data-accepts="value">
+            <div class="print-anchor anchor" data-accepts="value" data-limit="1">
               <div class="stack"></div>
             </div>
           </div>
@@ -70,7 +70,7 @@
           <div class="block math" draggable="true" data-block-type="value">
             Вычисление
 
-            <div class="math-left-anchor anchor" data-accepts="value">
+            <div class="math-left-anchor anchor" data-accepts="value" data-limit="1">
               <div class="stack"></div>
             </div>
 
@@ -81,7 +81,7 @@
               <option value="/">/</option>
             </select>
 
-            <div class="math-right-anchor anchor" data-accepts="value">
+            <div class="math-right-anchor anchor" data-accepts="value" data-limit="1">
               <div class="stack"></div>
             </div>
           </div>
@@ -90,7 +90,7 @@
             <div class="if-header">
               <span class="if-label">Если</span>
 
-              <div class="if-left-anchor anchor" data-accepts="value">
+              <div class="if-left-anchor anchor" data-accepts="value" data-limit="1">
                 <div class="stack"></div>
               </div>
 
@@ -103,7 +103,7 @@
                 <option value="<="><=</option>
               </select>
 
-              <div class="if-right-anchor anchor" data-accepts="value">
+              <div class="if-right-anchor anchor" data-accepts="value" data-limit="1">
                 <div class="stack"></div>
               </div>
             </div>
@@ -127,7 +127,7 @@
             <div class="while-header">
               <span class="while-label">Пока</span>
 
-              <div class="while-left-anchor anchor" data-accepts="value">
+              <div class="while-left-anchor anchor" data-accepts="value" data-limit="1">
                 <div class="stack"></div>
               </div>
 
@@ -140,7 +140,7 @@
                 <option value="<="><=</option>
               </select>
 
-              <div class="while-right-anchor anchor" data-accepts="value">
+              <div class="while-right-anchor anchor" data-accepts="value" data-limit="1">
                 <div class="stack"></div>
               </div>
             </div>
@@ -153,7 +153,7 @@
           <div class="block func-def" draggable="true" data-block-type="statement">
             <div class="func-def-header">
               Функция
-              <div class="func-def-name-anchor anchor" data-accepts="value">
+              <div class="func-def-name-anchor anchor" data-accepts="value" data-limit="1">
                 <div class="stack"></div>
               </div>
             </div>
@@ -164,7 +164,7 @@
 
           <div class="block func-call" draggable="true" data-block-type="statement">
             Вызов
-            <div class="func-call-name-anchor anchor" data-accepts="value">
+            <div class="func-call-name-anchor anchor" data-accepts="value" data-limit="1">
               <div class="stack"></div>
             </div>
           </div>
