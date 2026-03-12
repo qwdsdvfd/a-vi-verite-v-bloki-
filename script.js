@@ -176,8 +176,8 @@ function logToConsole(message) {
 
 const programState = {
     variables: {},
-    
-    arrays: {}
+    arrays: {},
+    functions: {}
     
 };
 
@@ -276,6 +276,8 @@ document.getElementById("run-btn").addEventListener("click", runH0Program);
 function runH0Program() {
     consoleOutput.innerHTML = "";
     programState.variables = {};
+    programState.arrays = {};
+    programState.functions = {};
     const root = right.querySelector(".anchor-H0");
     if (!root) return;
     executeStack(root.querySelector(".stack"));
@@ -356,35 +358,49 @@ function executeBlock(block) {
                 executeStack(block.querySelector(".if-else-anchor .stack"));
             }
         }
+
     } else if (block.classList.contains("while-block")) {
+        
+        while (true) {
+            const leftBlock = getBlockFromAnchor(block.querySelector(".while-left-anchor"));
+            const rightBlock = getBlockFromAnchor(block.querySelector(".while-right-anchor"));
 
-    while (true) {
+            const leftValue = leftBlock ? Number(evaluateBlock(leftBlock)) : 0;
+            const rightValue = rightBlock ? Number(evaluateBlock(rightBlock)) : 0;
 
-        const leftBlock = getBlockFromAnchor(block.querySelector(".while-left-anchor"));
-        const rightBlock = getBlockFromAnchor(block.querySelector(".while-right-anchor"));
+            let condition = false;
+            const operator = block.querySelector(".while-operator").value;
 
-        let leftValue = leftBlock ? Number(evaluateBlock(leftBlock)) : 0;
-        let rightValue = rightBlock ? Number(evaluateBlock(rightBlock)) : 0;
+            switch (operator) {
+                case "==": condition = leftValue == rightValue; break;
+                case "!=": condition = leftValue != rightValue; break;
+                case ">":  condition = leftValue > rightValue; break;
+                case "<":  condition = leftValue < rightValue; break;
+                case ">=": condition = leftValue >= rightValue; break;
+                case "<=": condition = leftValue <= rightValue; break;
+            }
 
-        let condition = false;
-        const operator = block.querySelector(".while-operator").value;
-
-        switch(operator) {
-            case "==": condition = leftValue == rightValue; break;
-            case "!=": condition = leftValue != rightValue; break;
-            case ">": condition = leftValue > rightValue; break;
-            case "<": condition = leftValue < rightValue; break;
-            case ">=": condition = leftValue >= rightValue; break;
-            case "<=": condition = leftValue <= rightValue; break;
+            if (!condition) break;
+            executeStack(block.querySelector(".while-body-anchor .stack"));
         }
 
-        if (!condition) break;
+    } else if (block.classList.contains("func-def")) {
+        const nameBlock = getBlockFromAnchor(block.querySelector(".func-def-name-anchor"));
+        const name = nameBlock ? String(evaluateBlock(nameBlock)) : 0;
+        if (!name) return;
+        const bodyStack = block.querySelector(".func-def-body-anchor .stack");
+        programState.functions[name] = bodyStack;
 
-        executeStack(block.querySelector(".while-body-anchor .stack"));
-    }
-}
+    } else if (block.classList.contains("func-call")) {
+        const nameBlock = getBlockFromAnchor(block.querySelector(".func-call-name-anchor"));
+        const name = nameBlock ? String(evaluateBlock(nameBlock)) : 0;
+        if (!name) return;
+        const bodyStack = programState.functions[name];
+        if (bodyStack) {
+            executeStack(bodyStack);
+        }
 
-    else if (block.classList.contains("anchor")) {
+    } else if (block.classList.contains("anchor")) {
         executeStack(block.querySelector(".stack"));
     }
 }

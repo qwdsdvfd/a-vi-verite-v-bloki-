@@ -81,6 +81,10 @@ body {
 .if-block    { background: linear-gradient(135deg, #7B1FA2, #512DA8); }
 .while-block { background: linear-gradient(135deg, #FF5252, #C62828); }
 .array-set   { background: linear-gradient(135deg, #26c9b3, #1100ff); display: flex; align-items: center; gap: 6px; }
+.func-def    { background: linear-gradient(135deg, #bd0e88, #ff0015);}
+.func-call   { background: linear-gradient(135deg, #d17e1e, #ff00b3); display: flex; align-items: center; gap: 6px; }
+
+
 
 .var-name-anchor,
 .var-value-anchor,
@@ -95,7 +99,9 @@ body {
 .array-value,
 .array-set-name,
 .array-set-index,
-.array-set-value {
+.array-set-value,
+.func-def-name-anchor,
+.func-call-name-anchor {
   background: rgba(255,255,255,0.08);
   border: 2px dashed rgba(255,255,255,0.30);
   border-radius: 10px;
@@ -111,7 +117,8 @@ body {
 }
 
 .if-block,
-.while-block {
+.while-block,
+.func-def {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -120,7 +127,8 @@ body {
 }
 
 .if-header,
-.while-header {
+.while-header,
+.func-def-header {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -128,7 +136,8 @@ body {
 
 .if-body-anchor,
 .if-else-anchor,
-.while-body-anchor {
+.while-body-anchor,
+.func-def-body-anchor {
   background: rgba(255,255,255,0.08);
   border: 2px dashed rgba(255,255,255,0.30);
   border-radius: 10px;
