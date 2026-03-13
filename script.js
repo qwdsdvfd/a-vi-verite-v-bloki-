@@ -298,7 +298,21 @@ function evaluateBlock(block) {
     const input = block.querySelector(".text-input");
     let val = input && input.value.trim() !== "" ? input.value.trim() : "0";
     if (val.startsWith("@")) {
+      
       const varName = val.slice(1);
+      if (varName.endsWith("++")) {
+        const name = varName.slice(0, -2);
+        const current = Number(programState.variables[name] ?? 0);
+        programState.variables[name] = current + 1;
+        return current + 1;
+      }
+      if (varName.endsWith("--")) {
+        const name = varName.slice(0, -2);
+        const current = Number(programState.variables[name] ?? 0);
+        programState.variables[name] = current - 1;
+        return current - 1;
+      }
+
       const match = varName.match(/^(\w+)(?:\[(.+)\])?$/);
       if (match) {
         const arrName = match[1];
