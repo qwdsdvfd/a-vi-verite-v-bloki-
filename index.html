@@ -100,15 +100,19 @@
             </div>
           </div>
 
-          <div class="block if-block" draggable="true" data-block-type="statement">
-            <div class="if-header">
-              <span class="if-label">Если</span>
-
-              <div class="if-left-anchor anchor" data-accepts="value" data-limit="1">
+          <div class="block cond-block" draggable="true" data-block-type="value">
+            <div class="cond-header">
+              <span class="cond-label">Условие</span>
+              <label class="cond-bool-label">
+                <input type="checkbox" class="cond-bool-toggle" disabled />
+                Логические
+              </label>
+            </div>
+            <div class="cond-numeric-row">
+              <div class="cond-left-anchor anchor" data-accepts="value" data-limit="1">
                 <div class="stack"></div>
               </div>
-
-              <select class="if-operator" disabled>
+              <select class="cond-operator" disabled>
                 <option value="==">==</option>
                 <option value="!=">!=</option>
                 <option value=">">></option>
@@ -116,8 +120,30 @@
                 <option value=">=">>=</option>
                 <option value="<="><=</option>
               </select>
+              <div class="cond-right-anchor anchor" data-accepts="value" data-limit="1">
+                <div class="stack"></div>
+              </div>
+            </div>
+            <div class="cond-bool-row" style="display:none">
+              <div class="cond-left-anchor-b anchor" data-accepts="value" data-limit="1">
+                <div class="stack"></div>
+              </div>
+              <select class="cond-bool-operator" disabled>
+                <option value="&&">И (&&)</option>
+                <option value="||">ИЛИ (||)</option>
+                <option value="!">НЕ (!)</option>
+              </select>
+              <div class="cond-right-anchor-b anchor" data-accepts="value" data-limit="1">
+                <div class="stack"></div>
+              </div>
+            </div>
+          </div>
 
-              <div class="if-right-anchor anchor" data-accepts="value" data-limit="1">
+          <div class="block if-block" draggable="true" data-block-type="statement">
+            <div class="if-header">
+              <span class="if-label">Если</span>
+
+              <div class="if-cond-anchor anchor" data-accepts="value" data-limit="1">
                 <div class="stack"></div>
               </div>
             </div>
@@ -141,20 +167,7 @@
             <div class="while-header">
               <span class="while-label">Пока</span>
 
-              <div class="while-left-anchor anchor" data-accepts="value" data-limit="1">
-                <div class="stack"></div>
-              </div>
-
-              <select class="while-operator" disabled>
-                <option value="==">==</option>
-                <option value="!=">!=</option>
-                <option value=">">></option>
-                <option value="<"><</option>
-                <option value=">=">>=</option>
-                <option value="<="><=</option>
-              </select>
-
-              <div class="while-right-anchor anchor" data-accepts="value" data-limit="1">
+              <div class="while-cond-anchor anchor" data-accepts="value" data-limit="1">
                 <div class="stack"></div>
               </div>
             </div>

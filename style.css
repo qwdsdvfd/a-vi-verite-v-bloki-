@@ -114,10 +114,12 @@ body {
 .array-set   { background: linear-gradient(135deg, #26c9b3, #1100ff); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .func-def    { background: linear-gradient(135deg, #bd0e88, #ff0015); }
 .func-call   { background: linear-gradient(135deg, #d17e1e, #ff00b3); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cond-block  { background: linear-gradient(135deg, #00d47c, #000f64); }
 
 .if-block,
 .while-block,
-.func-def {
+.func-def,
+.cond-block {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -127,11 +129,38 @@ body {
 
 .if-header,
 .while-header,
-.func-def-header {
+.func-def-header,
+.cond-header {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.cond-numeric-row,
+.cond-bool-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cond-bool-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.85;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.cond-bool-toggle {
+  accent-color: #00BCD4;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
 }
 
 .var-name-anchor,
@@ -139,17 +168,19 @@ body {
 .print-anchor,
 .math-left-anchor,
 .math-right-anchor,
-.if-left-anchor,
-.if-right-anchor,
-.while-left-anchor,
-.while-right-anchor,
+.if-cond-anchor,
+.while-cond-anchor,
 .array-name,
 .array-value,
 .array-set-name,
 .array-set-index,
 .array-set-value,
 .func-def-name-anchor,
-.func-call-name-anchor {
+.func-call-name-anchor,
+.cond-left-anchor,
+.cond-right-anchor,
+.cond-left-anchor-b,
+.cond-right-anchor-b {
   background: rgba(255,255,255,0.08);
   border: 2px dashed rgba(255,255,255,0.30);
   border-radius: 10px;
@@ -186,8 +217,8 @@ body {
 }
 
 .math-operator,
-.while-operator,
-.if-operator,
+.cond-operator,
+.cond-bool-operator,
 .var-mode {
   appearance: none;
   -webkit-appearance: none;
@@ -204,8 +235,8 @@ body {
 }
 
 .math-operator:hover,
-.while-operator:hover,
-.if-operator:hover,
+.cond-operator:hover,
+.cond-bool-operator:hover,
 .var-mode:hover {
   background-color: rgba(255,255,255,0.22);
   border-color: rgba(120,196,49,0.7);
@@ -213,16 +244,16 @@ body {
 }
 
 .math-operator:focus,
-.while-operator:focus,
-.if-operator:focus,
+.cond-operator:focus,
+.cond-bool-operator:focus,
 .var-mode:focus {
   border-color: #78c431;
   box-shadow: 0 0 0 2px rgba(120,196,49,0.3);
 }
 
 .math-operator option,
-.while-operator option,
-.if-operator option,
+.cond-operator option,
+.cond-bool-operator option,
 .var-mode option {
   background: #1e1e2f;
   color: #fff;
@@ -499,8 +530,6 @@ body {
   box-shadow: 0 0 16px rgba(120,196,49,0.45), 0 4px 12px rgba(0,0,0,0.3) !important;
   animation: debug-pulse 1s ease-in-out infinite alternate;
 }
-
-
 
 @keyframes debug-pulse {
   from { box-shadow: 0 0 10px rgba(120,196,49,0.4), 0 4px 12px rgba(0,0,0,0.3); }

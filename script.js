@@ -224,6 +224,36 @@ right.addEventListener("drop", (e) => {
         }
       });
     }
+
+    const condBoolToggle = block.querySelector(".cond-bool-toggle");
+    if (condBoolToggle) {
+      const numericRow = block.querySelector(".cond-numeric-row");
+      const boolRow = block.querySelector(".cond-bool-row");
+      const boolOpSelect = block.querySelector(".cond-bool-operator");
+
+      const updateCondRightB = () => {
+        const rightAnchorB = block.querySelector(".cond-right-anchor-b");
+        if (boolOpSelect.value === "!") {
+          rightAnchorB.style.display = "none";
+          rightAnchorB.querySelector(".stack").innerHTML = "";
+        } else {
+          rightAnchorB.style.display = "";
+        }
+      };
+
+      boolOpSelect.addEventListener("change", updateCondRightB);
+
+      condBoolToggle.addEventListener("change", () => {
+        if (condBoolToggle.checked) {
+          numericRow.style.display = "none";
+          boolRow.style.display = "flex";
+          updateCondRightB();
+        } else {
+          numericRow.style.display = "flex";
+          boolRow.style.display = "none";
+        }
+      });
+    }
   } else {
     block = dragged;
   }
@@ -298,7 +328,6 @@ function evaluateBlock(block) {
     const input = block.querySelector(".text-input");
     let val = input && input.value.trim() !== "" ? input.value.trim() : "0";
     if (val.startsWith("@")) {
-      
       const varName = val.slice(1);
       if (varName.endsWith("++")) {
         const name = varName.slice(0, -2);
@@ -387,6 +416,28 @@ function evaluateBlock(block) {
     }
   }
 
+  if (block.classList.contains("cond-block")) {
+    const boolToggle = getOwnSelect(block, "cond-bool-toggle");
+    if (boolToggle && boolToggle.checked) {
+      const op = getOwnSelect(block, "cond-bool-operator").value;
+      const leftBlock = getBlockFromAnchor(getOwnAnchor(block, "cond-left-anchor-b"));
+      const lv = leftBlock ? evaluateBlock(leftBlock) : 0;
+      if (op === "!") return lv ? 0 : 1;
+      const rightBlock = getBlockFromAnchor(getOwnAnchor(block, "cond-right-anchor-b"));
+      const rv = rightBlock ? evaluateBlock(rightBlock) : 0;
+      if (op === "&&") return (lv && rv) ? 1 : 0;
+      if (op === "||") return (lv || rv) ? 1 : 0;
+    } else {
+      const leftBlock = getBlockFromAnchor(getOwnAnchor(block, "cond-left-anchor"));
+      const rightBlock = getBlockFromAnchor(getOwnAnchor(block, "cond-right-anchor"));
+      const op = getOwnSelect(block, "cond-operator").value;
+      const lv = leftBlock ? Number(evaluateBlock(leftBlock)) : 0;
+      const rv = rightBlock ? Number(evaluateBlock(rightBlock)) : 0;
+      return evalOperator(lv, op, rv) ? 1 : 0;
+    }
+    return 0;
+  }
+
   if (block.classList.contains("anchor")) {
     const inner = getBlockFromAnchor(block);
     return inner ? evaluateBlock(inner) : 0;
@@ -463,37 +514,8 @@ function executeBlock(block) {
     if (name && programState.arrays[name])
       programState.arrays[name][index] = value;
   } else if (block.classList.contains("if-block")) {
-    const leftBlock = getBlockFromAnchor(
-      block.querySelector(".if-left-anchor"),
-    );
-    const rightBlock = getBlockFromAnchor(
-      block.querySelector(".if-right-anchor"),
-    );
-    const operator = block.querySelector(".if-operator").value;
-    const leftValue = leftBlock ? Number(evaluateBlock(leftBlock)) : 0;
-    const rightValue = rightBlock ? Number(evaluateBlock(rightBlock)) : 0;
-    let result = false;
-
-    switch (operator) {
-      case "==":
-        result = leftValue == rightValue;
-        break;
-      case "!=":
-        result = leftValue != rightValue;
-        break;
-      case ">":
-        result = leftValue > rightValue;
-        break;
-      case "<":
-        result = leftValue < rightValue;
-        break;
-      case ">=":
-        result = leftValue >= rightValue;
-        break;
-      case "<=":
-        result = leftValue <= rightValue;
-        break;
-    }
+    const condBlock = getBlockFromAnchor(block.querySelector(".if-cond-anchor"));
+    const result = condBlock ? evaluateBlock(condBlock) : 0;
 
     if (result) {
       executeStack(block.querySelector(".if-body-anchor .stack"));
@@ -509,40 +531,10 @@ function executeBlock(block) {
       if (++iterations > MAX_ITERATIONS) {
         break;
       }
-      const leftBlock = getBlockFromAnchor(
-        getOwnAnchor(block, "while-left-anchor"),
+      const condBlock = getBlockFromAnchor(
+        getOwnAnchor(block, "while-cond-anchor"),
       );
-      const rightBlock = getBlockFromAnchor(
-        getOwnAnchor(block, "while-right-anchor"),
-      );
-
-      const leftValue = leftBlock ? Number(evaluateBlock(leftBlock)) : 0;
-      const rightValue = rightBlock ? Number(evaluateBlock(rightBlock)) : 0;
-
-      let condition = false;
-      const operator = getOwnSelect(block, "while-operator").value;
-
-      switch (operator) {
-        case "==":
-          condition = leftValue == rightValue;
-          break;
-        case "!=":
-          condition = leftValue != rightValue;
-          break;
-        case ">":
-          condition = leftValue > rightValue;
-          break;
-        case "<":
-          condition = leftValue < rightValue;
-          break;
-        case ">=":
-          condition = leftValue >= rightValue;
-          break;
-        case "<=":
-          condition = leftValue <= rightValue;
-          break;
-      }
-
+      const condition = condBlock ? evaluateBlock(condBlock) : 0;
       if (!condition) break;
       const bodyAnchor = getOwnAnchor(block, "while-body-anchor");
       executeStack(bodyAnchor.querySelector(".stack"));
@@ -637,6 +629,7 @@ function describeBlock(block) {
     "while-block": "Пока",
     "func-def": "Функция (определение)",
     "func-call": "Вызов функции",
+    "cond-block": "Условие",
   };
   for (const [cls, label] of Object.entries(map)) {
     if (block.classList.contains(cls)) return label;
@@ -650,13 +643,11 @@ function collectBlockSteps(block, steps) {
       block,
       desc: "Если — проверка условия",
       execute(ctx) {
-        const lv = evalNumericAnchor(block, ".if-left-anchor");
-        const rv = evalNumericAnchor(block, ".if-right-anchor");
-        const operator = block.querySelector(".if-operator").value;
-        const result = evalOperator(lv, operator, rv);
+        const condBlock = getBlockFromAnchor(block.querySelector(".if-cond-anchor"));
+        const result = condBlock ? evaluateBlock(condBlock) : 0;
 
         logToConsole(
-          `→ Условие: ${lv} ${operator} ${rv} = ${result ? "ИСТИНА" : "ЛОЖЬ"}`,
+          `→ Условие: ${result ? "ИСТИНА" : "ЛОЖЬ"}`,
           "debug-info",
         );
 
@@ -690,13 +681,13 @@ function collectBlockSteps(block, steps) {
           return;
         }
 
-        const lv = evalNumericAnchor(block, ".while-left-anchor");
-        const rv = evalNumericAnchor(block, ".while-right-anchor");
-        const operator = getOwnSelect(block, "while-operator").value;
-        const condition = evalOperator(lv, operator, rv);
+        const condBlock = getBlockFromAnchor(
+          getOwnAnchor(block, "while-cond-anchor"),
+        );
+        const condition = condBlock ? evaluateBlock(condBlock) : 0;
 
         logToConsole(
-          `Условие: ${lv} ${operator} ${rv} = ${
+          `Условие: ${
             condition
               ? `ИСТИНА (итерация ${whileStep.iterations})`
               : "ЛОЖЬ — выход из цикла"
