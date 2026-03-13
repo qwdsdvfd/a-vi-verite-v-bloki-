@@ -420,16 +420,24 @@ function evaluateBlock(block) {
     const boolToggle = getOwnSelect(block, "cond-bool-toggle");
     if (boolToggle && boolToggle.checked) {
       const op = getOwnSelect(block, "cond-bool-operator").value;
-      const leftBlock = getBlockFromAnchor(getOwnAnchor(block, "cond-left-anchor-b"));
+      const leftBlock = getBlockFromAnchor(
+        getOwnAnchor(block, "cond-left-anchor-b"),
+      );
       const lv = leftBlock ? evaluateBlock(leftBlock) : 0;
       if (op === "!") return lv ? 0 : 1;
-      const rightBlock = getBlockFromAnchor(getOwnAnchor(block, "cond-right-anchor-b"));
+      const rightBlock = getBlockFromAnchor(
+        getOwnAnchor(block, "cond-right-anchor-b"),
+      );
       const rv = rightBlock ? evaluateBlock(rightBlock) : 0;
-      if (op === "&&") return (lv && rv) ? 1 : 0;
-      if (op === "||") return (lv || rv) ? 1 : 0;
+      if (op === "&&") return lv && rv ? 1 : 0;
+      if (op === "||") return lv || rv ? 1 : 0;
     } else {
-      const leftBlock = getBlockFromAnchor(getOwnAnchor(block, "cond-left-anchor"));
-      const rightBlock = getBlockFromAnchor(getOwnAnchor(block, "cond-right-anchor"));
+      const leftBlock = getBlockFromAnchor(
+        getOwnAnchor(block, "cond-left-anchor"),
+      );
+      const rightBlock = getBlockFromAnchor(
+        getOwnAnchor(block, "cond-right-anchor"),
+      );
       const op = getOwnSelect(block, "cond-operator").value;
       const lv = leftBlock ? Number(evaluateBlock(leftBlock)) : 0;
       const rv = rightBlock ? Number(evaluateBlock(rightBlock)) : 0;
@@ -514,7 +522,9 @@ function executeBlock(block) {
     if (name && programState.arrays[name])
       programState.arrays[name][index] = value;
   } else if (block.classList.contains("if-block")) {
-    const condBlock = getBlockFromAnchor(block.querySelector(".if-cond-anchor"));
+    const condBlock = getBlockFromAnchor(
+      block.querySelector(".if-cond-anchor"),
+    );
     const result = condBlock ? evaluateBlock(condBlock) : 0;
 
     if (result) {
@@ -538,6 +548,38 @@ function executeBlock(block) {
       if (!condition) break;
       const bodyAnchor = getOwnAnchor(block, "while-body-anchor");
       executeStack(bodyAnchor.querySelector(".stack"));
+    }
+  } else if (block.classList.contains("for-block")) {
+    const initStack = block.querySelector(".for-init-anchor .stack");
+    if (initStack) {
+      for (let b of initStack.children) executeBlock(b);
+    }
+    let iterations = 0;
+    const MAX_ITERATIONS = 1000;
+    while (true) {
+      if (++iterations > MAX_ITERATIONS) break;
+      const condBlock = getBlockFromAnchor(
+        getOwnAnchor(block, "for-cond-anchor"),
+      );
+      const condition = condBlock ? evaluateBlock(condBlock) : 0;
+      if (!condition) break;
+      executeStack(
+        getOwnAnchor(block, "for-body-anchor").querySelector(".stack"),
+      );
+      const stepStack = block.querySelector(".for-step-anchor .stack");
+      if (stepStack) {
+        for (let b of stepStack.children) {
+          if (
+            b.classList.contains("text-block") ||
+            b.classList.contains("value") ||
+            b.dataset.blockType === "value"
+          ) {
+            evaluateBlock(b);
+          } else {
+            executeBlock(b);
+          }
+        }
+      }
     }
   } else if (block.classList.contains("func-def")) {
     const nameBlock = getBlockFromAnchor(
@@ -630,6 +672,7 @@ function describeBlock(block) {
     "func-def": "Функция (определение)",
     "func-call": "Вызов функции",
     "cond-block": "Условие",
+    "for-block": "Для (for)",
   };
   for (const [cls, label] of Object.entries(map)) {
     if (block.classList.contains(cls)) return label;
@@ -643,13 +686,12 @@ function collectBlockSteps(block, steps) {
       block,
       desc: "Если — проверка условия",
       execute(ctx) {
-        const condBlock = getBlockFromAnchor(block.querySelector(".if-cond-anchor"));
+        const condBlock = getBlockFromAnchor(
+          block.querySelector(".if-cond-anchor"),
+        );
         const result = condBlock ? evaluateBlock(condBlock) : 0;
 
-        logToConsole(
-          `→ Условие: ${result ? "ИСТИНА" : "ЛОЖЬ"}`,
-          "debug-info",
-        );
+        logToConsole(`→ Условие: ${result ? "ИСТИНА" : "ЛОЖЬ"}`, "debug-info");
 
         if (result) {
           collectStepsFromAnchor(
@@ -706,6 +748,60 @@ function collectBlockSteps(block, steps) {
       },
     };
     steps.push(whileStep);
+  } else if (block.classList.contains("for-block")) {
+    const initStack = block.querySelector(".for-init-anchor .stack");
+    if (initStack) {
+      for (let b of initStack.children) executeBlock(b);
+    }
+    const forStep = {
+      block,
+      desc: "Для — проверка условия",
+      iterations: 0,
+      execute(ctx) {
+        if (++forStep.iterations > 1000) {
+          logToConsole(
+            "⚠ Превышено 1000 итераций, цикл остановлен",
+            "debug-warn",
+          );
+          return;
+        }
+        const condBlock = getBlockFromAnchor(
+          getOwnAnchor(block, "for-cond-anchor"),
+        );
+        const condition = condBlock ? evaluateBlock(condBlock) : 0;
+        logToConsole(
+          `Условие: ${condition ? `ИСТИНА (итерация ${forStep.iterations})` : "ЛОЖЬ — выход из цикла"}`,
+          "debug-info",
+        );
+        if (condition) {
+          const bodySteps = [];
+          collectStepsFromAnchor(
+            getOwnAnchor(block, "for-body-anchor"),
+            bodySteps,
+          );
+          const stepStack = block.querySelector(".for-step-anchor .stack");
+          const stepSteps = [];
+          if (stepStack) {
+            Array.from(stepStack.children).forEach((b) => {
+              if (
+                b.classList.contains("text-block") ||
+                b.dataset.blockType === "value"
+              ) {
+                stepSteps.push({
+                  block: b,
+                  desc: "Шаг",
+                  execute: () => evaluateBlock(b),
+                });
+              } else {
+                collectBlockSteps(b, stepSteps);
+              }
+            });
+          }
+          ctx.extraSteps.push(...bodySteps, ...stepSteps, forStep);
+        }
+      },
+    };
+    steps.push(forStep);
   } else if (block.classList.contains("func-def")) {
     steps.push({
       block,

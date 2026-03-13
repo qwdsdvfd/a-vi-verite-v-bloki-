@@ -114,12 +114,14 @@ body {
 .array-set   { background: linear-gradient(135deg, #26c9b3, #1100ff); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .func-def    { background: linear-gradient(135deg, #bd0e88, #ff0015); }
 .func-call   { background: linear-gradient(135deg, #d17e1e, #ff00b3); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.cond-block  { background: linear-gradient(135deg, #00d47c, #000f64); }
+.cond-block  { background: linear-gradient(135deg, #00BCD4, #006064); }
+.for-block   { background: linear-gradient(135deg, #FF9800, #E65100); }
 
 .if-block,
 .while-block,
 .func-def,
-.cond-block {
+.cond-block,
+.for-block {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -130,11 +132,19 @@ body {
 .if-header,
 .while-header,
 .func-def-header,
-.cond-header {
+.cond-header,
+.for-header {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.for-sep {
+  font-size: 16px;
+  font-weight: 700;
+  opacity: 0.7;
+  flex-shrink: 0;
 }
 
 .cond-numeric-row,
@@ -180,7 +190,10 @@ body {
 .cond-left-anchor,
 .cond-right-anchor,
 .cond-left-anchor-b,
-.cond-right-anchor-b {
+.cond-right-anchor-b,
+.for-init-anchor,
+.for-cond-anchor,
+.for-step-anchor {
   background: rgba(255,255,255,0.08);
   border: 2px dashed rgba(255,255,255,0.30);
   border-radius: 10px;
@@ -198,7 +211,8 @@ body {
 .if-body-anchor,
 .if-else-anchor,
 .while-body-anchor,
-.func-def-body-anchor {
+.func-def-body-anchor,
+.for-body-anchor {
   background: rgba(255,255,255,0.08);
   border: 2px dashed rgba(255,255,255,0.30);
   border-radius: 10px;
