@@ -13,7 +13,21 @@
           <div class="console-title">Консоль</div>
           <div id="console-out"></div>
         </div>
-        <button id="run-btn">▶</button>
+        <div id="top-buttons">
+          <button id="run-btn">▶</button>
+          <button id="debug-btn">Отладка</button>
+        </div>
+      </div>
+
+      <div id="debug-toolbar" style="display:none">
+        <div id="debug-status">
+          <span id="debug-label">Отладка</span>
+        </div>
+        <div id="debug-controls">
+          <button id="dbg-step">⏭</button>
+          <button id="dbg-continue">▶</button>
+          <button id="dbg-stop">⏹</button>
+        </div>
       </div>
 
       <div class="bottom">

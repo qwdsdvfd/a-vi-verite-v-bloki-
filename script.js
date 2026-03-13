@@ -30,12 +30,13 @@ function isDropAllowed(block, stack) {
   const blockType = getBlockType(block);
   const accepts = stackAccepts(stack);
 
-  if (accepts !== "any" && blockType !== "any" && accepts !== blockType) return false;
+  if (accepts !== "any" && blockType !== "any" && accepts !== blockType)
+    return false;
 
   const limit = getStackLimit(stack);
   if (isFinite(limit)) {
     const realChildren = [...stack.children].filter(
-      (c) => !c.classList.contains("drop-placeholder")
+      (c) => !c.classList.contains("drop-placeholder"),
     );
     if (realChildren.length >= limit) return false;
   }
@@ -126,7 +127,6 @@ document.addEventListener("dragend", () => {
 
 right.addEventListener("dragover", (e) => {
   e.preventDefault();
-
 
   const overDragged =
     !fromPalette &&
@@ -235,7 +235,6 @@ right.addEventListener("drop", (e) => {
     removePlaceholder();
     return;
   }
-
 
   if (targetStack) {
     const insertBefore = getInsertionPoint(targetStack, e.clientY);
@@ -443,13 +442,12 @@ function executeBlock(block) {
     const valueBlock = getBlockFromAnchor(
       block.querySelector(".array-set-value"),
     );
-    
+
     const name = nameBlock ? evaluateBlock(nameBlock) : null;
     const index = indexBlock ? Number(evaluateBlock(indexBlock)) : 0;
     const value = valueBlock ? evaluateBlock(valueBlock) : 0;
     if (name && programState.arrays[name])
       programState.arrays[name][index] = value;
-
   } else if (block.classList.contains("if-block")) {
     const leftBlock = getBlockFromAnchor(
       block.querySelector(".if-left-anchor"),
@@ -489,7 +487,6 @@ function executeBlock(block) {
       const toggle = block.querySelector(".if-else-toggle");
       if (toggle && toggle.checked)
         executeStack(block.querySelector(".if-else-anchor .stack"));
-
     }
   } else if (block.classList.contains("while-block")) {
     let iterations = 0;
@@ -556,3 +553,430 @@ function executeBlock(block) {
     executeStack(block.querySelector(".stack"));
   }
 }
+
+const debugMode = {
+  active: false,
+  cursor: -1,
+  paused: true,
+  continueTimer: null,
+};
+
+let stepQueue = [];
+
+let debugLastState = {
+  variables: {},
+  arrays: {},
+};
+
+function getAnchorBlock(block, selector) {
+  return getBlockFromAnchor(block.querySelector(selector));
+}
+
+function evalNumericAnchor(block, selector) {
+  const b = getAnchorBlock(block, selector);
+  return b ? Number(evaluateBlock(b)) : 0;
+}
+
+function evalStringAnchor(block, selector) {
+  const b = getAnchorBlock(block, selector);
+  return b ? String(evaluateBlock(b)) : null;
+}
+
+function evalOperator(lv, operator, rv) {
+  switch (operator) {
+    case "==":
+      return lv == rv;
+    case "!=":
+      return lv != rv;
+    case ">":
+      return lv > rv;
+    case "<":
+      return lv < rv;
+    case ">=":
+      return lv >= rv;
+    case "<=":
+      return lv <= rv;
+    default:
+      return false;
+  }
+}
+
+function collectStepsFromAnchor(anchor, dest) {
+  if (!anchor) return;
+  collectSteps(anchor.querySelector(".stack"), dest);
+}
+
+function collectSteps(stack, steps) {
+  if (!stack) return;
+  Array.from(stack.children).forEach((block) =>
+    collectBlockSteps(block, steps),
+  );
+}
+
+function describeBlock(block) {
+  const map = {
+    print: "Вывести",
+    variable: "Переменная",
+    "array-block": "Массив",
+    "array-set": "Изменение массива",
+    "if-block": "Если",
+    "while-block": "Пока",
+    "func-def": "Функция (определение)",
+    "func-call": "Вызов функции",
+  };
+  for (const [cls, label] of Object.entries(map)) {
+    if (block.classList.contains(cls)) return label;
+  }
+  return "Блок";
+}
+
+function collectBlockSteps(block, steps) {
+  if (block.classList.contains("if-block")) {
+    steps.push({
+      block,
+      desc: "Если — проверка условия",
+      execute(ctx) {
+        const lv = evalNumericAnchor(block, ".if-left-anchor");
+        const rv = evalNumericAnchor(block, ".if-right-anchor");
+        const operator = block.querySelector(".if-operator").value;
+        const result = evalOperator(lv, operator, rv);
+
+        logToConsole(
+          `→ Условие: ${lv} ${operator} ${rv} = ${result ? "ИСТИНА" : "ЛОЖЬ"}`,
+          "debug-info",
+        );
+
+        if (result) {
+          collectStepsFromAnchor(
+            block.querySelector(".if-body-anchor"),
+            ctx.extraSteps,
+          );
+        } else {
+          const toggle = block.querySelector(".if-else-toggle");
+          if (toggle?.checked) {
+            collectStepsFromAnchor(
+              block.querySelector(".if-else-anchor"),
+              ctx.extraSteps,
+            );
+          }
+        }
+      },
+    });
+  } else if (block.classList.contains("while-block")) {
+    const whileStep = {
+      block,
+      desc: "Пока — проверка условия",
+      iterations: 0,
+      execute(ctx) {
+        if (++whileStep.iterations > 1000) {
+          logToConsole(
+            "⚠ Превышено 1000 итераций, цикл остановлен",
+            "debug-warn",
+          );
+          return;
+        }
+
+        const lv = evalNumericAnchor(block, ".while-left-anchor");
+        const rv = evalNumericAnchor(block, ".while-right-anchor");
+        const operator = getOwnSelect(block, "while-operator").value;
+        const condition = evalOperator(lv, operator, rv);
+
+        logToConsole(
+          `Условие: ${lv} ${operator} ${rv} = ${
+            condition
+              ? `ИСТИНА (итерация ${whileStep.iterations})`
+              : "ЛОЖЬ — выход из цикла"
+          }`,
+          "debug-info",
+        );
+
+        if (condition) {
+          const bodySteps = [];
+          collectStepsFromAnchor(
+            getOwnAnchor(block, "while-body-anchor"),
+            bodySteps,
+          );
+          ctx.extraSteps.push(...bodySteps, whileStep);
+        }
+      },
+    };
+    steps.push(whileStep);
+  } else if (block.classList.contains("func-def")) {
+    steps.push({
+      block,
+      desc: "Функция — определение",
+      execute() {
+        const name = evalStringAnchor(block, ".func-def-name-anchor");
+        if (!name) return;
+        programState.functions[name] = block.querySelector(
+          ".func-def-body-anchor .stack",
+        );
+        logToConsole(`Функция "${name}" определена`, "debug-info");
+      },
+    });
+  } else if (block.classList.contains("func-call")) {
+    steps.push({
+      block,
+      desc: "Вызов функции",
+      execute(ctx) {
+        const name = evalStringAnchor(block, ".func-call-name-anchor");
+        if (!name) return;
+
+        logToConsole(`Вызов "${name}"`, "debug-info");
+
+        const bodyStack = programState.functions[name];
+        if (bodyStack) {
+          collectSteps(bodyStack, ctx.extraSteps);
+        } else {
+          logToConsole(`Функция "${name}" не найдена`, "debug-warn");
+        }
+      },
+    });
+  } else {
+    steps.push({
+      block,
+      desc: describeBlock(block),
+      execute: () => executeBlock(block),
+    });
+  }
+}
+
+function logStateChanges() {
+  const { variables, arrays } = programState;
+
+  for (const [k, v] of Object.entries(variables)) {
+    if (debugLastState.variables[k] !== v) {
+      logToConsole(`Переменная "${k}" = ${v}`, "debug-info");
+      debugLastState.variables[k] = v;
+    }
+  }
+
+  for (const [k, v] of Object.entries(arrays)) {
+    if (JSON.stringify(debugLastState.arrays[k]) !== JSON.stringify(v)) {
+      logToConsole(`Массив "${k}" = [${v.join(", ")}]`, "debug-info");
+      debugLastState.arrays[k] = [...v];
+    }
+  }
+}
+
+function clearHighlights(cls) {
+  document
+    .querySelectorAll(`.${cls}`)
+    .forEach((el) => el.classList.remove(cls));
+}
+
+function highlightBlock(block) {
+  clearHighlights("debug-current");
+  clearHighlights("debug-done");
+
+  if (block) {
+    block.classList.add("debug-current");
+    block.scrollIntoView({ behavior: "auto", block: "nearest" });
+  }
+}
+
+function highlightDone(block) {
+  block?.classList.add("debug-done");
+}
+
+function updateDebugLabel(text, type = "") {
+  const lbl = document.getElementById("debug-label");
+  lbl.textContent = text;
+  lbl.className = type ? `debug-label-${type}` : "";
+}
+
+function setRunButtonDisabled(disabled) {
+  document.getElementById("run-btn").disabled = disabled;
+}
+
+function setDebugButtonActive(active) {
+  document.getElementById("debug-btn").classList.toggle("active", active);
+}
+
+function setDebugToolbarVisible(visible) {
+  document.getElementById("debug-toolbar").style.display = visible
+    ? "flex"
+    : "none";
+}
+
+function resetDebugState() {
+  programState.variables = {};
+  programState.arrays = {};
+  programState.functions = {};
+
+  debugLastState = { variables: {}, arrays: {} };
+
+  stepQueue = [];
+  debugMode.cursor = -1;
+  debugMode.active = false;
+  debugMode.paused = true;
+
+  if (debugMode.continueTimer) {
+    clearTimeout(debugMode.continueTimer);
+    debugMode.continueTimer = null;
+  }
+
+  document.getElementById("dbg-continue").textContent = "▶";
+}
+
+function startDebug() {
+  if (debugMode.active) stopDebug();
+
+  consoleOutput.innerHTML = "";
+  resetDebugState();
+
+  const root = right.querySelector(".anchor-H0");
+  if (!root) return;
+
+  collectSteps(root.querySelector(".stack"), stepQueue);
+
+  if (stepQueue.length === 0) {
+    logToConsole("Нет блоков для отладки.", "debug-info");
+    return;
+  }
+
+  debugMode.active = true;
+  debugMode.cursor = 0;
+
+  setDebugToolbarVisible(true);
+  setRunButtonDisabled(true);
+  setDebugButtonActive(true);
+
+  updateDebugLabel("Отладка готова к запуску", "paused");
+  highlightBlock(stepQueue[0].block);
+  logToConsole("Режим отладки запущен.", "debug-info");
+}
+
+function stepForward() {
+  if (!debugMode.active) return;
+
+  if (debugMode.cursor >= stepQueue.length) {
+    finishDebug();
+    return;
+  }
+
+  const step = stepQueue[debugMode.cursor];
+  highlightBlock(step.block);
+  updateDebugLabel(
+    `Шаг ${debugMode.cursor + 1} / ${stepQueue.length}: ${step.desc}`,
+    "running",
+  );
+
+  const ctx = { extraSteps: [] };
+
+  try {
+    step.execute(ctx);
+  } catch (err) {
+    logToConsole("Ошибка: " + err.message, "debug-error");
+  }
+
+  if (ctx.extraSteps.length > 0) {
+    stepQueue.splice(debugMode.cursor + 1, 0, ...ctx.extraSteps);
+  }
+
+  highlightDone(step.block);
+  logStateChanges();
+
+  debugMode.cursor++;
+
+  if (debugMode.cursor >= stepQueue.length) {
+    finishDebug();
+  } else {
+    highlightBlock(stepQueue[debugMode.cursor].block);
+    updateDebugLabel(
+      `Следующий: ${stepQueue[debugMode.cursor].desc}`,
+      "paused",
+    );
+  }
+}
+
+function continueDebug() {
+  if (!debugMode.active) return;
+
+  if (!debugMode.paused) {
+    debugMode.paused = true;
+
+    if (debugMode.continueTimer) {
+      clearTimeout(debugMode.continueTimer);
+      debugMode.continueTimer = null;
+    }
+
+    document.getElementById("dbg-continue").textContent = "▶";
+
+    updateDebugLabel(
+      stepQueue[debugMode.cursor]
+        ? `Пауза — следующий: ${stepQueue[debugMode.cursor].desc}`
+        : "Пауза",
+      "paused",
+    );
+
+    return;
+  }
+
+  debugMode.paused = false;
+  document.getElementById("dbg-continue").textContent = "⏸";
+  updateDebugLabel("Выполняется...", "running");
+
+  function runNext() {
+    if (!debugMode.active || debugMode.paused) return;
+
+    if (debugMode.cursor >= stepQueue.length) {
+      finishDebug();
+      return;
+    }
+
+    stepForward();
+
+    if (debugMode.active && !debugMode.paused) {
+      debugMode.continueTimer = setTimeout(runNext, 120);
+    }
+  }
+
+  runNext();
+}
+
+function finishDebug() {
+  if (!debugMode.active) return;
+
+  debugMode.active = false;
+  debugMode.paused = true;
+
+  clearHighlights("debug-current");
+
+  updateDebugLabel("Выполнено", "done");
+  logToConsole("Программа завершена.", "debug-info");
+
+  setRunButtonDisabled(false);
+  setDebugButtonActive(false);
+
+  document.getElementById("dbg-continue").textContent = "▶";
+
+  if (debugMode.continueTimer) {
+    clearTimeout(debugMode.continueTimer);
+    debugMode.continueTimer = null;
+  }
+}
+
+function stopDebug() {
+  const wasActive = debugMode.active;
+
+  resetDebugState();
+
+  clearHighlights("debug-current");
+  clearHighlights("debug-done");
+
+  setDebugToolbarVisible(false);
+  setRunButtonDisabled(false);
+  setDebugButtonActive(false);
+
+  if (wasActive) {
+    logToConsole("Отладка остановлена.", "debug-info");
+  }
+}
+
+document.getElementById("debug-btn").addEventListener("click", startDebug);
+document.getElementById("dbg-step").addEventListener("click", stepForward);
+document
+  .getElementById("dbg-continue")
+  .addEventListener("click", continueDebug);
+document.getElementById("dbg-stop").addEventListener("click", stopDebug);
